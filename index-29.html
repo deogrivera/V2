@@ -1,0 +1,2492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Request System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f4f8;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #1a3c6e;
+            border-bottom: 3px solid #1a3c6e;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .tab-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #dde1e6;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 14px 10px;
+            background: #f0f4f8;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 700;
+            color: #6c757d;
+            border-radius: 6px 6px 0 0;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover { background: #e9ecef; }
+
+        .tab-btn.active {
+            background: #1a3c6e;
+            color: white;
+            border-bottom-color: #d97706;
+        }
+
+        .tab-view { display: none; }
+        .tab-view.active { display: block; }
+
+        .subtab-nav {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+
+        .subtab-btn {
+            flex: 1;
+            padding: 10px;
+            background: #fff;
+            border: 2px solid #d97706;
+            color: #d97706;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .subtab-btn.active {
+            background: #d97706;
+            color: white;
+        }
+
+        .subtab-view { display: none; }
+        .subtab-view.active { display: block; }
+
+        .form-section {
+            border: 1px solid #dde1e6;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            background: #fafbfc;
+        }
+
+        .form-section h3 {
+            color: #1a3c6e;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-left: 4px solid #1a3c6e;
+            padding-left: 10px;
+        }
+
+        .form-section.supplier-block {
+            background: #fff;
+            border: 1px solid #c9d4e0;
+        }
+
+        .form-section.supplier-block h3 {
+            border-left-color: #d97706;
+        }
+
+        .form-group {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+
+        .form-group label {
+            width: 180px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            min-width: 200px;
+        }
+
+        .form-group textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        .items-section {
+            margin-top: 10px;
+        }
+
+        .item-row {
+            display: grid;
+            grid-template-columns: 80px 150px 200px 100px 120px 80px;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .item-row input {
+            padding: 6px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 13px;
+            width: 100%;
+        }
+
+        .item-row .header {
+            font-weight: 700;
+            background: #e9ecef;
+            padding: 8px;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #1a3c6e;
+        }
+
+        .ms-draft-row {
+            display: grid;
+            grid-template-columns: 70px 70px 90px 1fr 40px;
+            gap: 6px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .ms-draft-row input {
+            padding: 6px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 13px;
+            width: 100%;
+        }
+
+        .ms-draft-row .header {
+            font-weight: 700;
+            background: #e9ecef;
+            padding: 8px 4px;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #1a3c6e;
+        }
+
+        .ms-item-row {
+            display: grid;
+            grid-template-columns: 60px 60px 70px 1fr 90px 90px 90px 90px;
+            gap: 6px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .ms-item-row input {
+            padding: 6px 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 12px;
+            width: 100%;
+        }
+
+        .ms-item-row input.avg-price {
+            background: #eef6ee;
+            font-weight: 700;
+            color: #1a6e3c;
+        }
+
+        .ms-item-row .header {
+            font-weight: 700;
+            background: #e9ecef;
+            padding: 8px 4px;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #1a3c6e;
+        }
+
+        .btn {
+            background: #1a3c6e;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+            margin-right: 10px;
+        }
+
+        .btn:hover { background: #2a5a8e; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-accent { background: #d97706; }
+        .btn-accent:hover { background: #b85f04; }
+        .btn-print { background: #17a2b8; }
+        .btn-print:hover { background: #128294; }
+        .btn-test { background: #6f42c1; }
+        .btn-test:hover { background: #5a32a3; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-small { padding: 6px 12px; font-size: 12px; }
+
+        .button-group {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        /* Test Section Styles */
+        .test-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border: 2px dashed #6f42c1;
+            border-radius: 8px;
+            display: block !important;
+        }
+
+        .test-section h4 {
+            color: #6f42c1;
+            margin-bottom: 10px;
+        }
+
+        .test-section p {
+            font-size: 13px;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+
+        .test-button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .test-result {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .test-result.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .test-result.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-tracker {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            display: none;
+        }
+
+        .status-tracker.visible {
+            display: block;
+        }
+
+        .status-tracker h4 {
+            color: #1a3c6e;
+            margin-bottom: 15px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-tracker h4 .badge {
+            font-size: 11px;
+            background: #6c757d;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-weight: normal;
+        }
+
+        .status-tracker h4 .badge.running {
+            background: #17a2b8;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-tracker h4 .badge.done {
+            background: #28a745;
+        }
+
+        .status-tracker h4 .badge.error {
+            background: #dc3545;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .progress-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: white;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .step .icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 13px;
+            flex-shrink: 0;
+            background: #e9ecef;
+            color: #6c757d;
+        }
+
+        .step .icon.pending {
+            background: #e9ecef;
+            color: #6c757d;
+        }
+
+        .step .icon.active {
+            background: #17a2b8;
+            color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        .step .icon.done {
+            background: #28a745;
+            color: white;
+        }
+
+        .step .icon.error {
+            background: #dc3545;
+            color: white;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .step .step-label {
+            flex: 1;
+            color: #333;
+        }
+
+        .step .step-status {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 12px;
+        }
+
+        .step .step-status.pending {
+            color: #6c757d;
+            background: #e9ecef;
+        }
+
+        .step .step-status.active {
+            color: #17a2b8;
+            background: #d1ecf1;
+        }
+
+        .step .step-status.done {
+            color: #28a745;
+            background: #d4edda;
+        }
+
+        .step .step-status.error {
+            color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .step .step-time {
+            font-size: 11px;
+            color: #999;
+            font-family: monospace;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .step.active-step {
+            border-color: #17a2b8;
+            background: #f0f9ff;
+        }
+
+        .step.done-step {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+
+        .step.error-step {
+            border-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .notification-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .notification-overlay.visible {
+            display: flex;
+        }
+
+        .notification-box {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .notification-box .icon-big {
+            font-size: 56px;
+            margin-bottom: 10px;
+        }
+
+        .notification-box h2 {
+            color: #1a3c6e;
+            margin-bottom: 5px;
+        }
+
+        .notification-box .subtitle {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .notification-box .pr-number {
+            background: #e9ecef;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a3c6e;
+            display: inline-block;
+            margin: 10px 0;
+        }
+
+        .notification-box .btn-group {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .status-message {
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .total-cost {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a3c6e;
+            text-align: right;
+            margin-top: 10px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .remove-btn:hover { background: #c82333; }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s ease-in-out infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .ms-lookup {
+            background: #fff8ec;
+            border: 1px dashed #d97706;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .ms-lookup h4 {
+            color: #b85f04;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .ms-lookup-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .ms-lookup-row input {
+            flex: 1;
+            min-width: 180px;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .ms-browse-list {
+            margin-top: 10px;
+            border: 1px solid #eadfcb;
+            border-radius: 6px;
+            background: white;
+            max-height: 220px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .ms-browse-list.visible { display: block; }
+
+        .ms-browse-item {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0ede3;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .ms-browse-item:last-child { border-bottom: none; }
+        .ms-browse-item:hover { background: #fff8ec; }
+
+        .ms-browse-item .ms-num {
+            font-weight: 700;
+            color: #1a3c6e;
+            font-family: monospace;
+        }
+
+        .ms-browse-item .ms-meta {
+            color: #6c757d;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .status-pill {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 6px;
+        }
+
+        .status-pill.pending { background: #fff3cd; color: #856404; }
+        .status-pill.quoted { background: #d4edda; color: #155724; }
+
+        .ms-load-status {
+            margin-top: 10px;
+            font-size: 13px;
+            padding: 8px 10px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .ms-load-status.success { display: block; background: #d4edda; color: #155724; }
+        .ms-load-status.error { display: block; background: #f8d7da; color: #721c24; }
+        .ms-load-status.warning { display: block; background: #fff3cd; color: #856404; }
+
+        .encode-header-summary {
+            background: #eef2f7;
+            border-radius: 6px;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #333;
+            display: none;
+        }
+
+        .encode-header-summary.visible { display: block; }
+        .encode-header-summary strong { color: #1a3c6e; }
+
+        #printArea { display: none; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea {
+                display: block;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+            }
+            .print-copy { page-break-after: always; padding: 25px; font-family: 'Times New Roman', Times, serif; }
+            .print-copy:last-child { page-break-after: auto; }
+            .print-title { text-align: center; font-size: 18px; font-weight: bold; letter-spacing: 1px; margin-bottom: 14px; }
+            .print-copy-label { text-align: right; font-size: 11px; color: #555; margin-bottom: 10px; }
+            .print-intro { font-size: 12px; text-align: justify; margin-bottom: 14px; line-height: 1.5; }
+            .print-meta { font-size: 12px; margin-bottom: 4px; }
+            .print-meta strong { display: inline-block; width: 160px; }
+            .print-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 11px; }
+            .print-table th, .print-table td { border: 1px solid #000; padding: 5px; }
+            .print-table th { background: #eee; text-align: center; }
+            .print-footer { margin-top: 30px; font-size: 12px; }
+            .print-footer .sig-line { border-bottom: 1px solid #000; height: 26px; margin-bottom: 2px; }
+            .print-footer .field-row { display: flex; margin-top: 10px; }
+            .print-footer .field-row label { width: 200px; font-weight: bold; }
+            .print-footer .field-row .fill-line { flex: 1; border-bottom: 1px solid #000; }
+        }
+
+        @media (max-width: 768px) {
+            .form-group label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            .item-row {
+                grid-template-columns: 1fr;
+                gap: 5px;
+            }
+            .item-row .header { display: none; }
+            .ms-draft-row, .ms-item-row {
+                grid-template-columns: 1fr 1fr;
+            }
+            .ms-draft-row .header, .ms-item-row .header { display: none; }
+            .container { padding: 15px; }
+            .notification-box { padding: 25px; }
+            .tab-btn { font-size: 13px; padding: 12px 6px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 PROCUREMENT SYSTE </h1>
+
+        <div class="tab-nav">
+            <button type="button" class="tab-btn active" id="tabBtn-pr" onclick="switchTab('pr')">🧾 Purchase Request</button>
+            <button type="button" class="tab-btn" id="tabBtn-ms" onclick="switchTab('ms')">🔎 Market Survey</button>
+        </div>
+
+        <!-- ================================================= -->
+        <!-- PURCHASE REQUEST TAB                               -->
+        <!-- ================================================= -->
+        <div id="view-pr" class="tab-view active">
+            <form id="prForm">
+
+                <div class="ms-lookup">
+                    <h4>🔎 Load items from a quoted Market Survey (optional)</h4>
+                    <div class="ms-lookup-row">
+                        <input type="text" id="msSearchInput" placeholder="e.g., MS-20260826-1234">
+                        <button type="button" class="btn btn-accent btn-small" onclick="loadSurveyByNumber()">Load</button>
+                        <button type="button" class="btn btn-small" style="background:#6c757d;" onclick="toggleBrowseSurveys()">📂 Browse Recent</button>
+                    </div>
+                    <div id="msBrowseList" class="ms-browse-list"></div>
+                    <div id="msLoadStatus" class="ms-load-status"></div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Entity Information</h3>
+                    <div class="form-group">
+                        <label for="entityName">Entity Name:</label>
+                        <input type="text" id="entityName" placeholder="e.g., City Government of Manila" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="officeSection">Office/Section:</label>
+                        <input type="text" id="officeSection" placeholder="e.g., Finance Department" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fundCluster">Fund Cluster:</label>
+                        <input type="text" id="fundCluster" placeholder="e.g., General Fund" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="rcCode">Responsibility Center Code:</label>
+                        <input type="text" id="rcCode" placeholder="e.g., 101-001">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Purchase Request Details</h3>
+                    <div class="form-group">
+                        <label for="prNumber">PR No.:</label>
+                        <input type="text" id="prNumber" placeholder="Auto-generated" readonly style="background: #e9ecef;">
+                    </div>
+                    <div class="form-group">
+                        <label for="msNumber">Market Survey No.:</label>
+                        <input type="text" id="msNumber" placeholder="Linked automatically when loaded above" readonly style="background: #e9ecef;">
+                    </div>
+                    <div class="form-group">
+                        <label for="prDate">Date:</label>
+                        <input type="date" id="prDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="purpose">Purpose:</label>
+                        <textarea id="purpose" placeholder="State the purpose of this purchase..." required></textarea>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Items</h3>
+                    <div class="items-section">
+                        <div class="item-row header">
+                            <span>Stock/Property No.</span>
+                            <span>Unit</span>
+                            <span>Item Description</span>
+                            <span>Quantity</span>
+                            <span>Unit Cost</span>
+                            <span>Action</span>
+                        </div>
+                        <div id="itemContainer"></div>
+                        <button type="button" class="btn btn-success" onclick="addItemRow()" style="margin-top:10px; font-size:13px; padding:8px 15px;">
+                            + Add Item
+                        </button>
+                        <div class="total-cost">
+                            Total Cost: ₱ <span id="totalCostDisplay">0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Signatories</h3>
+                    <div class="form-group">
+                        <label for="requesterSignature">Signature:</label>
+                        <input type="text" id="requesterSignature" placeholder="Sign name here">
+                    </div>
+                    <div class="form-group">
+                        <label for="requesterName">Printed Name:</label>
+                        <input type="text" id="requesterName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="requesterDesignation">Designation:</label>
+                        <input type="text" id="requesterDesignation" required>
+                    </div>
+                    <hr style="margin: 15px 0;">
+                    <div class="form-group">
+                        <label for="approverSignature">Signature:</label>
+                        <input type="text" id="approverSignature" placeholder="Sign name here">
+                    </div>
+                    <div class="form-group">
+                        <label for="approverName">Printed Name:</label>
+                        <input type="text" id="approverName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="approverDesignation">Designation:</label>
+                        <input type="text" id="approverDesignation" required>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="btn" id="submitBtn" onclick="submitPR()">💾 Save Purchase Request</button>
+                    <button type="button" class="btn btn-danger" onclick="resetForm()">🔄 Reset Form</button>
+                </div>
+
+                <div id="statusTracker" class="status-tracker">
+                    <h4>
+                        ⏳ Processing Status
+                        <span id="statusBadge" class="badge">Starting...</span>
+                    </h4>
+                    <div id="progressSteps" class="progress-steps"></div>
+                </div>
+
+                <div id="statusMessage" class="status-message"></div>
+            </form>
+        </div>
+
+        <!-- ================================================= -->
+        <!-- MARKET SURVEY TAB                                  -->
+        <!-- ================================================= -->
+        <div id="view-ms" class="tab-view">
+
+            <div class="subtab-nav">
+                <button type="button" class="subtab-btn active" id="subtabBtn-create" onclick="switchMSSubtab('create')">📝 Step 1 — Create Survey</button>
+                <button type="button" class="subtab-btn" id="subtabBtn-encode" onclick="switchMSSubtab('encode')">📥 Step 2 — Encode Supplier Quotes</button>
+            </div>
+
+            <!-- ---------- STEP 1: CREATE ---------- -->
+            <div id="msSubview-create" class="subtab-view active">
+                <form id="msCreateForm">
+                    <div class="form-section">
+                        <h3>Market Survey Details</h3>
+                        <div class="form-group">
+                            <label for="msFormNumber">MS No.:</label>
+                            <input type="text" id="msFormNumber" readonly style="background: #e9ecef;">
+                        </div>
+                        <div class="form-group">
+                            <label for="msDate">Date Accomplished:</label>
+                            <input type="date" id="msDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="msEndUser">End-User/Focal Person:</label>
+                            <input type="text" id="msEndUser" placeholder="e.g., GSS - Motorpool" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="msPurpose">Purpose/Requirement:</label>
+                            <textarea id="msPurpose" placeholder="What is being surveyed / procured..." required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Items</h3>
+                        <div class="items-section">
+                            <div class="ms-draft-row header">
+                                <span>Item No.</span>
+                                <span>Qty</span>
+                                <span>Unit</span>
+                                <span>Item Description</span>
+                                <span></span>
+                            </div>
+                            <div id="msDraftItemContainer"></div>
+                            <button type="button" class="btn btn-success" onclick="addDraftItemRow()" style="margin-top:10px; font-size:13px; padding:8px 15px;">
+                                + Add Item
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="button" class="btn btn-accent" id="msCreateBtn" onclick="submitCreateSurvey()">💾 Save Market Survey</button>
+                        <button type="button" class="btn btn-print" id="msPrintBtn" onclick="printCurrentDraft()" disabled title="Save the survey first, then print">🖨️ Print Form (3 copies)</button>
+                        <button type="button" class="btn btn-danger" onclick="resetCreateForm()">🔄 Reset Form</button>
+                    </div>
+
+                    <!-- TEST SECTION - VISIBLE NOW -->
+                    <div class="test-section">
+                        <h4>🧪 API Test Section</h4>
+                        <p>
+                            Use these buttons to test the connection to Google Apps Script.
+                            Check the browser console (F12) for detailed logs.
+                        </p>
+                        <div class="test-button-group">
+                            <button type="button" class="btn btn-test" onclick="testDirectAPI()">🔌 Test API Connection</button>
+                            <button type="button" class="btn btn-test" onclick="testListSurveys()">📋 Test List Surveys</button>
+                            <button type="button" class="btn btn-test" onclick="testGetSurvey()">🔍 Test Get Survey</button>
+                            <button type="button" class="btn btn-small" style="background:#6c757d; color:white;" onclick="console.clear(); alert('Console cleared!')">🗑️ Clear Console</button>
+                        </div>
+                        <div id="testResult" class="test-result"></div>
+                    </div>
+
+                    <div id="msCreateStatusTracker" class="status-tracker">
+                        <h4>
+                            ⏳ Processing Status
+                            <span id="msCreateStatusBadge" class="badge">Starting...</span>
+                        </h4>
+                        <div id="msCreateProgressSteps" class="progress-steps"></div>
+                    </div>
+
+                    <div id="msCreateStatusMessage" class="status-message"></div>
+                </form>
+            </div>
+
+            <!-- ---------- STEP 2: ENCODE QUOTES ---------- -->
+            <div id="msSubview-encode" class="subtab-view">
+                <div class="ms-lookup">
+                    <h4>📥 Load a Market Survey to encode its 3 returned quotes</h4>
+                    <div class="ms-lookup-row">
+                        <input type="text" id="encodeSearchInput" placeholder="e.g., MS-20260826-1234">
+                        <button type="button" class="btn btn-accent btn-small" onclick="loadDraftForEncode()">Load</button>
+                        <button type="button" class="btn btn-small" style="background:#6c757d;" onclick="toggleBrowseSurveysEncode()">📂 Browse Recent</button>
+                    </div>
+                    <div id="encodeBrowseList" class="ms-browse-list"></div>
+                    <div id="encodeLoadStatus" class="ms-load-status"></div>
+                </div>
+
+                <div id="encodeHeaderSummary" class="encode-header-summary"></div>
+
+                <form id="msEncodeForm" style="display:none;">
+                <div id="msEncodeFormInner">
+                    <div class="form-section">
+                        <h3>Items &amp; Canvassed Prices (3 suppliers)</h3>
+                        <div class="items-section">
+                            <div class="ms-item-row header">
+                                <span>Item No.</span>
+                                <span>Qty</span>
+                                <span>Unit</span>
+                                <span>Item Description</span>
+                                <span>Supplier 1 ₱</span>
+                                <span>Supplier 2 ₱</span>
+                                <span>Supplier 3 ₱</span>
+                                <span>Average ₱</span>
+                            </div>
+                            <div id="msEncodeItemContainer"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-section supplier-block">
+                        <h3>Supplier 1</h3>
+                        <div class="form-group"><label>Company Name:</label><input type="text" id="s1Name" required></div>
+                        <div class="form-group"><label>Business Address:</label><input type="text" id="s1Address"></div>
+                        <div class="form-group"><label>PhilGEPS Reg. No.:</label><input type="text" id="s1Philgeps"></div>
+                        <div class="form-group"><label>TIN:</label><input type="text" id="s1Tin"></div>
+                        <div class="form-group"><label>Telephone:</label><input type="text" id="s1Contact"></div>
+                        <div class="form-group"><label>Email:</label><input type="email" id="s1Email"></div>
+                        <div class="form-group"><label>Signatory Name:</label><input type="text" id="s1Signatory"></div>
+                        <div class="form-group"><label>Designation:</label><input type="text" id="s1Designation"></div>
+                    </div>
+
+                    <div class="form-section supplier-block">
+                        <h3>Supplier 2</h3>
+                        <div class="form-group"><label>Company Name:</label><input type="text" id="s2Name" required></div>
+                        <div class="form-group"><label>Business Address:</label><input type="text" id="s2Address"></div>
+                        <div class="form-group"><label>PhilGEPS Reg. No.:</label><input type="text" id="s2Philgeps"></div>
+                        <div class="form-group"><label>TIN:</label><input type="text" id="s2Tin"></div>
+                        <div class="form-group"><label>Telephone:</label><input type="text" id="s2Contact"></div>
+                        <div class="form-group"><label>Email:</label><input type="email" id="s2Email"></div>
+                        <div class="form-group"><label>Signatory Name:</label><input type="text" id="s2Signatory"></div>
+                        <div class="form-group"><label>Designation:</label><input type="text" id="s2Designation"></div>
+                    </div>
+
+                    <div class="form-section supplier-block">
+                        <h3>Supplier 3</h3>
+                        <div class="form-group"><label>Company Name:</label><input type="text" id="s3Name" required></div>
+                        <div class="form-group"><label>Business Address:</label><input type="text" id="s3Address"></div>
+                        <div class="form-group"><label>PhilGEPS Reg. No.:</label><input type="text" id="s3Philgeps"></div>
+                        <div class="form-group"><label>TIN:</label><input type="text" id="s3Tin"></div>
+                        <div class="form-group"><label>Telephone:</label><input type="text" id="s3Contact"></div>
+                        <div class="form-group"><label>Email:</label><input type="email" id="s3Email"></div>
+                        <div class="form-group"><label>Signatory Name:</label><input type="text" id="s3Signatory"></div>
+                        <div class="form-group"><label>Designation:</label><input type="text" id="s3Designation"></div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="button" class="btn btn-accent" id="msEncodeBtn" onclick="submitEncodeQuotes()">💾 Save Supplier Quotes</button>
+                    </div>
+
+                    <div id="msEncodeStatusTracker" class="status-tracker">
+                        <h4>
+                            ⏳ Processing Status
+                            <span id="msEncodeStatusBadge" class="badge">Starting...</span>
+                        </h4>
+                        <div id="msEncodeProgressSteps" class="progress-steps"></div>
+                    </div>
+
+                    <div id="msEncodeStatusMessage" class="status-message"></div>
+                </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="notificationOverlay" class="notification-overlay">
+        <div class="notification-box">
+            <div class="icon-big" id="notifIcon">✅</div>
+            <h2 id="notifTitle">Success!</h2>
+            <p class="subtitle" id="notifSubtitle">Your Purchase Request has been saved.</p>
+            <div class="pr-number" id="notifPRNumber">PR-2026-0825-1234</div>
+            <p style="font-size:13px; color:#6c757d; margin-top:5px;" id="notifExtraLine">Total Cost: <strong id="notifTotalCost">₱ 0.00</strong></p>
+            <div class="btn-group" id="notifBtnGroup">
+                <button class="btn btn-success" onclick="closeNotification(); resetForm();">📝 New PR</button>
+                <button class="btn" onclick="closeNotification()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="printArea"></div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION - UPDATE WITH YOUR WEB APP URL
+        // ============================================
+        // IMPORTANT: 
+        // 1. Go to Apps Script → Deploy → Manage deployments
+        // 2. Copy the Web App URL (ends with /exec)
+        // 3. Paste it below
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXIWWN-_I0TDGnfOPaw51v7zQb9Z-6ySFI5uT84lPo9Q5UWuTSHwHW6WgqC_R8-EYYPw/exec';
+
+        // ============================================
+        // TEST FUNCTIONS
+        // ============================================
+        function showTestResult(message, isSuccess) {
+            const div = document.getElementById('testResult');
+            div.className = 'test-result';
+            div.innerHTML = message.replace(/\n/g, '<br>');
+            if (isSuccess) {
+                div.classList.add('success');
+            } else {
+                div.classList.add('error');
+            }
+            div.style.display = 'block';
+        }
+
+        async function testDirectAPI() {
+            console.log('=== TEST: Direct API Call ===');
+            console.log('SCRIPT_URL:', SCRIPT_URL);
+            
+            if (SCRIPT_URL.includes('YOUR_DEPLOYMENT_ID')) {
+                const msg = '❌ Please update SCRIPT_URL with your actual deployment URL!\n\nGo to Apps Script → Deploy → Manage deployments → Copy the Web App URL';
+                alert(msg);
+                showTestResult(msg, false);
+                return;
+            }
+
+            try {
+                const testData = {
+                    action: 'createMarketSurvey',
+                    msNumber: 'MS-HTML-TEST-' + new Date().getTime(),
+                    dateAccomplished: new Date().toISOString().split('T')[0],
+                    endUser: 'HTML Test User',
+                    purpose: 'Testing from HTML',
+                    items: [
+                        {
+                            itemNo: '1',
+                            quantity: 5,
+                            unit: 'pcs',
+                            description: 'Test Item from HTML'
+                        }
+                    ],
+                    timestamp: new Date().toISOString()
+                };
+                
+                console.log('Sending data:', JSON.stringify(testData, null, 2));
+                
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testData)
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response status text:', response.statusText);
+                
+                if (!response.ok) {
+                    throw new Error('HTTP error! status: ' + response.status + ' - ' + response.statusText);
+                }
+                
+                const result = await response.json();
+                console.log('Response data:', result);
+                
+                if (result.success) {
+                    const msg = '✅ Test successful!\n\nMS Number: ' + testData.msNumber + '\nItems added: ' + (result.itemsAdded || 0) + '\n\nCheck your Google Sheet!';
+                    alert(msg);
+                    showTestResult(msg, true);
+                } else {
+                    const msg = '❌ Test failed: ' + (result.error || 'Unknown error');
+                    alert(msg);
+                    showTestResult(msg, false);
+                }
+                return result;
+                
+            } catch (error) {
+                console.error('Test failed:', error);
+                const msg = '❌ Error: ' + error.message + '\n\nCheck:\n1. SCRIPT_URL is correct\n2. Web App is deployed\n3. Access is set to "Anyone"';
+                alert(msg);
+                showTestResult(msg, false);
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function testListSurveys() {
+            console.log('=== TEST: List Surveys ===');
+            console.log('SCRIPT_URL:', SCRIPT_URL);
+            
+            try {
+                const url = SCRIPT_URL + '?action=listSurveys';
+                console.log('Fetching:', url);
+                
+                const response = await fetch(url);
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error('HTTP error! status: ' + response.status);
+                }
+                
+                const result = await response.json();
+                console.log('Response:', result);
+                
+                if (result.success) {
+                    const count = (result.surveys || []).length;
+                    const msg = '✅ Found ' + count + ' survey(s)\n\n' + 
+                        (count > 0 ? result.surveys.map(s => '• ' + s.msNumber + ' (' + s.status + ')').join('\n') : 'No surveys yet');
+                    alert(msg);
+                    showTestResult(msg, true);
+                } else {
+                    const msg = '❌ Failed: ' + (result.error || 'Unknown error');
+                    alert(msg);
+                    showTestResult(msg, false);
+                }
+                return result;
+                
+            } catch (error) {
+                console.error('Test failed:', error);
+                const msg = '❌ Error: ' + error.message;
+                alert(msg);
+                showTestResult(msg, false);
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function testGetSurvey() {
+            console.log('=== TEST: Get Survey ===');
+            
+            let msNumber = document.getElementById('msFormNumber')?.value;
+            if (!msNumber || msNumber === 'MS-YYYYMMDD-XXXX') {
+                msNumber = prompt('Enter the MS Number to look up:', 'MS-20260826-1234');
+                if (!msNumber) return;
+            }
+            
+            console.log('Looking up:', msNumber);
+            
+            try {
+                const url = SCRIPT_URL + '?action=getSurvey&msNumber=' + encodeURIComponent(msNumber);
+                console.log('Fetching:', url);
+                
+                const response = await fetch(url);
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error('HTTP error! status: ' + response.status);
+                }
+                
+                const result = await response.json();
+                console.log('Response:', result);
+                
+                if (result.success) {
+                    const msg = '✅ Survey found!\n\n' +
+                        'MS Number: ' + result.msNumber + '\n' +
+                        'Status: ' + result.status + '\n' +
+                        'End User: ' + result.endUser + '\n' +
+                        'Items: ' + (result.items || []).length + ' item(s)';
+                    alert(msg);
+                    showTestResult(msg, true);
+                } else {
+                    const msg = '❌ Survey not found: ' + (result.error || 'Unknown error');
+                    alert(msg);
+                    showTestResult(msg, false);
+                }
+                return result;
+                
+            } catch (error) {
+                console.error('Test failed:', error);
+                const msg = '❌ Error: ' + error.message;
+                alert(msg);
+                showTestResult(msg, false);
+                return { success: false, error: error.message };
+            }
+        }
+
+        // ============================================
+        // TABS
+        // ============================================
+        function switchTab(tab) {
+            document.getElementById('view-pr').classList.toggle('active', tab === 'pr');
+            document.getElementById('view-ms').classList.toggle('active', tab === 'ms');
+            document.getElementById('tabBtn-pr').classList.toggle('active', tab === 'pr');
+            document.getElementById('tabBtn-ms').classList.toggle('active', tab === 'ms');
+        }
+
+        function switchMSSubtab(sub) {
+            document.getElementById('msSubview-create').classList.toggle('active', sub === 'create');
+            document.getElementById('msSubview-encode').classList.toggle('active', sub === 'encode');
+            document.getElementById('subtabBtn-create').classList.toggle('active', sub === 'create');
+            document.getElementById('subtabBtn-encode').classList.toggle('active', sub === 'encode');
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str == null ? '' : String(str);
+            return div.innerHTML;
+        }
+
+        // ============================================
+        // PR: STATUS TRACKER
+        // ============================================
+        let itemCount = 0;
+        let isSubmitting = false;
+
+        const STEPS = [
+            { id: 'validate', label: 'Validating form data...', icon: '🔍' },
+            { id: 'prepare', label: 'Preparing data for submission...', icon: '📦' },
+            { id: 'connect', label: 'Connecting to Google Sheets...', icon: '🔗' },
+            { id: 'save', label: 'Saving to Google Sheets...', icon: '💾' },
+            { id: 'verify', label: 'Verifying save operation...', icon: '✅' }
+        ];
+
+        let stepStatus = {};
+        let startTime = null;
+
+        function initStatusTracker() {
+            const tracker = document.getElementById('statusTracker');
+            tracker.classList.add('visible');
+            const container = document.getElementById('progressSteps');
+            container.innerHTML = '';
+            stepStatus = {};
+            startTime = Date.now();
+
+            STEPS.forEach((step) => {
+                stepStatus[step.id] = 'pending';
+                const div = document.createElement('div');
+                div.className = 'step';
+                div.id = 'step-' + step.id;
+                div.innerHTML = `
+                    <span class="icon pending" id="icon-${step.id}">${step.icon}</span>
+                    <span class="step-label">${step.label}</span>
+                    <span class="step-status pending" id="status-${step.id}">Pending</span>
+                    <span class="step-time" id="time-${step.id}">--</span>
+                `;
+                container.appendChild(div);
+            });
+
+            document.getElementById('statusBadge').textContent = 'Running...';
+            document.getElementById('statusBadge').className = 'badge running';
+        }
+
+        function updateStep(stepId, status, message) {
+            const step = STEPS.find(s => s.id === stepId);
+            if (!step) return;
+
+            const el = document.getElementById('step-' + stepId);
+            const icon = document.getElementById('icon-' + stepId);
+            const statusEl = document.getElementById('status-' + stepId);
+            const timeEl = document.getElementById('time-' + stepId);
+
+            if (!el || !icon || !statusEl || !timeEl) return;
+
+            el.className = 'step';
+            icon.className = 'icon';
+
+            const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+
+            switch(status) {
+                case 'active':
+                    el.classList.add('active-step');
+                    icon.classList.add('active');
+                    icon.textContent = '⏳';
+                    statusEl.textContent = message || 'Processing...';
+                    statusEl.className = 'step-status active';
+                    timeEl.textContent = elapsed + 's';
+                    break;
+                case 'done':
+                    el.classList.add('done-step');
+                    icon.classList.add('done');
+                    icon.textContent = '✅';
+                    statusEl.textContent = message || 'Done';
+                    statusEl.className = 'step-status done';
+                    timeEl.textContent = elapsed + 's';
+                    break;
+                case 'error':
+                    el.classList.add('error-step');
+                    icon.classList.add('error');
+                    icon.textContent = '❌';
+                    statusEl.textContent = message || 'Failed';
+                    statusEl.className = 'step-status error';
+                    timeEl.textContent = elapsed + 's';
+                    break;
+                default:
+                    icon.classList.add('pending');
+                    icon.textContent = step.icon;
+                    statusEl.textContent = 'Pending';
+                    statusEl.className = 'step-status pending';
+                    timeEl.textContent = '--';
+            }
+
+            stepStatus[stepId] = status;
+        }
+
+        function setStepError(stepId, message) {
+            updateStep(stepId, 'error', message);
+            document.getElementById('statusBadge').textContent = 'Failed';
+            document.getElementById('statusBadge').className = 'badge error';
+        }
+
+        function setAllStepsDone() {
+            STEPS.forEach(step => {
+                if (stepStatus[step.id] !== 'error') {
+                    updateStep(step.id, 'done', 'Completed');
+                }
+            });
+            document.getElementById('statusBadge').textContent = 'Completed';
+            document.getElementById('statusBadge').className = 'badge done';
+        }
+
+        // ============================================
+        // NOTIFICATION
+        // ============================================
+        function showNotification(title, subtitle, refNumber, extraLineHtml, btnGroupHtml) {
+            document.getElementById('notifTitle').textContent = title;
+            document.getElementById('notifSubtitle').textContent = subtitle;
+            document.getElementById('notifPRNumber').textContent = refNumber;
+            document.getElementById('notifExtraLine').innerHTML = extraLineHtml || '';
+            document.getElementById('notifBtnGroup').innerHTML = btnGroupHtml;
+            document.getElementById('notificationOverlay').classList.add('visible');
+        }
+
+        function closeNotification() {
+            document.getElementById('notificationOverlay').classList.remove('visible');
+        }
+
+        // ============================================
+        // PR: FORM FUNCTIONS
+        // ============================================
+        document.getElementById('prDate').value = new Date().toISOString().split('T')[0];
+
+        function generatePRNumber() {
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+            return `PR-${year}${month}${day}-${random}`;
+        }
+
+        document.getElementById('prNumber').value = generatePRNumber();
+
+        function getItemRows() {
+            return document.querySelectorAll('#itemContainer .item-row');
+        }
+
+        function addItemRow(stockNo = '', unit = '', description = '', quantity = 1, unitCost = 0) {
+            const container = document.getElementById('itemContainer');
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.dataset.index = itemCount;
+
+            row.innerHTML = `
+                <input type="text" class="stock-no" value="${stockNo}" placeholder="e.g., 001">
+                <input type="text" class="unit" value="${unit}" placeholder="e.g., pcs">
+                <input type="text" class="description" value="${description}" placeholder="Item description" required>
+                <input type="number" class="quantity" value="${quantity}" min="1" step="1" onchange="updateTotal()" oninput="updateTotal()">
+                <input type="number" class="unit-cost" value="${unitCost}" min="0" step="0.01" onchange="updateTotal()" oninput="updateTotal()">
+                <button type="button" class="remove-btn" onclick="removeItemRow(this)">✕</button>
+            `;
+
+            container.appendChild(row);
+            itemCount++;
+            updateTotal();
+        }
+
+        function removeItemRow(btn) {
+            const rows = getItemRows();
+            if (rows.length > 1) {
+                btn.closest('.item-row').remove();
+                updateTotal();
+            } else {
+                alert('You need at least one item.');
+            }
+        }
+
+        function updateTotal() {
+            const rows = getItemRows();
+            let total = 0;
+
+            rows.forEach(row => {
+                const quantity = parseFloat(row.querySelector('.quantity')?.value) || 0;
+                const unitCost = parseFloat(row.querySelector('.unit-cost')?.value) || 0;
+                total += quantity * unitCost;
+            });
+
+            document.getElementById('totalCostDisplay').textContent = total.toFixed(2);
+        }
+
+        function resetForm() {
+            if (confirm('Are you sure you want to reset the form? All data will be lost.')) {
+                document.getElementById('prForm').reset();
+                document.getElementById('itemContainer').innerHTML = '';
+                document.getElementById('prNumber').value = generatePRNumber();
+                document.getElementById('msNumber').value = '';
+                document.getElementById('prDate').value = new Date().toISOString().split('T')[0];
+                document.getElementById('totalCostDisplay').textContent = '0.00';
+                document.getElementById('statusMessage').className = 'status-message';
+                document.getElementById('statusMessage').style.display = 'none';
+                document.getElementById('statusTracker').classList.remove('visible');
+                document.getElementById('progressSteps').innerHTML = '';
+                document.getElementById('msLoadStatus').className = 'ms-load-status';
+                document.getElementById('msBrowseList').classList.remove('visible');
+                document.getElementById('msSearchInput').value = '';
+                addItemRow('', '', '', 1, 0);
+                addItemRow('', '', '', 1, 0);
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '💾 Save Purchase Request';
+                isSubmitting = false;
+                closeNotification();
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = 'status-message ' + type;
+            statusDiv.style.display = 'block';
+            statusDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // ============================================
+        // PR: MARKET SURVEY LOOKUP
+        // ============================================
+        function showMSLoadStatus(message, type) {
+            const el = document.getElementById('msLoadStatus');
+            el.textContent = message;
+            el.className = 'ms-load-status ' + (type || '');
+        }
+
+        async function loadSurveyByNumber() {
+            const msNumber = document.getElementById('msSearchInput').value.trim();
+            if (!msNumber) {
+                showMSLoadStatus('Enter a Market Survey number first.', 'error');
+                return;
+            }
+            await fetchAndApplySurvey(msNumber);
+        }
+
+        async function fetchAndApplySurvey(msNumber) {
+            showMSLoadStatus('Searching for ' + msNumber + ' ...', '');
+            try {
+                const url = SCRIPT_URL + '?action=getSurvey&msNumber=' + encodeURIComponent(msNumber);
+                console.log('Fetching:', url);
+                
+                const res = await fetch(url);
+                if (!res.ok) {
+                    throw new Error('HTTP error! status: ' + res.status);
+                }
+                const data = await res.json();
+                console.log('Response:', data);
+
+                if (!data.success) {
+                    showMSLoadStatus('❌ ' + (data.error || 'Market Survey not found'), 'error');
+                    return;
+                }
+
+                if (data.status !== 'Quoted') {
+                    showMSLoadStatus(`⚠️ ${data.msNumber} is still "${data.status}" — encode its 3 supplier quotes first (Market Survey tab → Step 2) before loading it into a PR.`, 'warning');
+                    document.getElementById('msBrowseList').classList.remove('visible');
+                    return;
+                }
+
+                document.getElementById('itemContainer').innerHTML = '';
+                data.items.forEach(it => {
+                    addItemRow('', it.unit || '', it.description || '', parseFloat(it.quantity) || 1, parseFloat(it.avgUnitPrice) || 0);
+                });
+
+                document.getElementById('msNumber').value = data.msNumber;
+                if (!document.getElementById('purpose').value.trim()) {
+                    document.getElementById('purpose').value = data.purpose || '';
+                }
+                updateTotal();
+
+                showMSLoadStatus(`✅ Loaded ${data.items.length} item(s) from ${data.msNumber} (unit prices = average of the 3 canvassed quotes)`, 'success');
+                document.getElementById('msBrowseList').classList.remove('visible');
+                document.getElementById('msSearchInput').value = data.msNumber;
+
+            } catch (err) {
+                console.error('Error:', err);
+                showMSLoadStatus('❌ ' + err.message, 'error');
+            }
+        }
+
+        function statusPillHtml(status) {
+            if (status === 'Quoted') return '<span class="status-pill quoted">Quoted</span>';
+            return '<span class="status-pill pending">Pending Quotes</span>';
+        }
+
+        async function toggleBrowseSurveys() {
+            const list = document.getElementById('msBrowseList');
+            if (list.classList.contains('visible')) {
+                list.classList.remove('visible');
+                return;
+            }
+
+            list.innerHTML = '<div class="ms-browse-item">Loading recent surveys...</div>';
+            list.classList.add('visible');
+
+            try {
+                const res = await fetch(SCRIPT_URL + '?action=listSurveys');
+                const data = await res.json();
+
+                if (!data.success || !data.surveys || data.surveys.length === 0) {
+                    list.innerHTML = '<div class="ms-browse-item">No Market Surveys saved yet.</div>';
+                    return;
+                }
+
+                list.innerHTML = '';
+                data.surveys.forEach(s => {
+                    const div = document.createElement('div');
+                    div.className = 'ms-browse-item';
+                    div.innerHTML = `
+                        <div class="ms-num">${s.msNumber} ${statusPillHtml(s.status)}</div>
+                        <div class="ms-meta">${s.dateAccomplished || ''} · ${s.endUser || ''} — ${(s.purpose || '').substring(0, 60)}</div>
+                    `;
+                    div.onclick = () => fetchAndApplySurvey(s.msNumber);
+                    list.appendChild(div);
+                });
+            } catch (err) {
+                list.innerHTML = '<div class="ms-browse-item">❌ ' + err.message + '</div>';
+            }
+        }
+
+        // ============================================
+        // PR: MAIN SUBMIT FUNCTION
+        // ============================================
+        async function submitPR() {
+            if (isSubmitting) return;
+
+            document.getElementById('statusMessage').style.display = 'none';
+            initStatusTracker();
+
+            try {
+                updateStep('validate', 'active', 'Checking required fields...');
+                await sleep(300);
+
+                const required = ['entityName', 'officeSection', 'fundCluster', 'prDate', 'purpose', 'requesterName', 'requesterDesignation', 'approverName', 'approverDesignation'];
+
+                for (let id of required) {
+                    const field = document.getElementById(id);
+                    if (!field || !field.value.trim()) {
+                        updateStep('validate', 'error', 'Missing: ' + (field?.previousElementSibling?.textContent?.trim() || id));
+                        setStepError('validate', 'Missing required field');
+                        showStatus(`Please fill in all required fields.`, 'error');
+                        if (field) field.focus();
+                        return;
+                    }
+                }
+                updateStep('validate', 'done', 'All required fields filled');
+
+                updateStep('prepare', 'active', 'Processing items...');
+                await sleep(300);
+
+                const itemRows = getItemRows();
+                let hasValidItem = false;
+                let itemData = [];
+
+                itemRows.forEach(row => {
+                    const descInput = row.querySelector('.description');
+                    const qtyInput = row.querySelector('.quantity');
+                    const costInput = row.querySelector('.unit-cost');
+
+                    if (!descInput || !qtyInput || !costInput) return;
+
+                    const description = descInput.value.trim();
+                    const quantity = parseFloat(qtyInput.value) || 0;
+                    const unitCost = parseFloat(costInput.value) || 0;
+
+                    if (description && quantity > 0 && unitCost >= 0) {
+                        hasValidItem = true;
+                        itemData.push({
+                            stockNo: row.querySelector('.stock-no')?.value?.trim() || '',
+                            unit: row.querySelector('.unit')?.value?.trim() || '',
+                            description: description,
+                            quantity: quantity,
+                            unitCost: unitCost,
+                            totalCost: quantity * unitCost
+                        });
+                    }
+                });
+
+                if (!hasValidItem || itemData.length === 0) {
+                    updateStep('prepare', 'error', 'No valid items found');
+                    setStepError('prepare', 'No valid items');
+                    showStatus('Please add at least one valid item with description, quantity, and unit cost.', 'error');
+                    return;
+                }
+                updateStep('prepare', 'done', itemData.length + ' items prepared');
+
+                updateStep('connect', 'active', 'Establishing connection...');
+                await sleep(300);
+
+                const prNumber = document.getElementById('prNumber').value;
+                const totalCost = parseFloat(document.getElementById('totalCostDisplay').textContent) || 0;
+
+                const formData = {
+                    action: 'submitPR',
+                    prNumber: prNumber,
+                    msNumber: document.getElementById('msNumber').value.trim(),
+                    entityName: document.getElementById('entityName').value.trim(),
+                    officeSection: document.getElementById('officeSection').value.trim(),
+                    fundCluster: document.getElementById('fundCluster').value.trim(),
+                    rcCode: document.getElementById('rcCode').value.trim(),
+                    prDate: document.getElementById('prDate').value,
+                    purpose: document.getElementById('purpose').value.trim(),
+                    items: itemData,
+                    totalCost: totalCost,
+                    requesterSignature: document.getElementById('requesterSignature').value.trim(),
+                    requesterName: document.getElementById('requesterName').value.trim(),
+                    requesterDesignation: document.getElementById('requesterDesignation').value.trim(),
+                    approverSignature: document.getElementById('approverSignature').value.trim(),
+                    approverName: document.getElementById('approverName').value.trim(),
+                    approverDesignation: document.getElementById('approverDesignation').value.trim(),
+                    timestamp: new Date().toISOString()
+                };
+
+                updateStep('connect', 'done', 'Connected');
+
+                updateStep('save', 'active', 'Sending data...');
+                await sleep(300);
+
+                isSubmitting = true;
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner"></span> Saving...';
+
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    updateStep('save', 'done', 'Saved');
+
+                    updateStep('verify', 'active', 'Verifying...');
+                    await sleep(300);
+                    updateStep('verify', 'done', 'Verified');
+
+                    setAllStepsDone();
+                    showStatus('✅ Purchase Request successfully saved!', 'success');
+                    showNotification(
+                        'Success!',
+                        'Your Purchase Request has been saved.',
+                        prNumber,
+                        'Total Cost: <strong>₱ ' + totalCost.toFixed(2) + '</strong>',
+                        `<button class="btn btn-success" onclick="closeNotification(); resetForm();">📝 New PR</button>
+                         <button class="btn" onclick="closeNotification()">Close</button>`
+                    );
+
+                } else {
+                    updateStep('save', 'error', result.error || 'Save failed');
+                    setStepError('save', result.error || 'Unknown error');
+                    showStatus('❌ Error: ' + (result.error || 'Unknown error'), 'error');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('❌ Error: ' + error.message, 'error');
+
+                const activeStep = STEPS.find(s => stepStatus[s.id] === 'active');
+                if (activeStep) {
+                    setStepError(activeStep.id, error.message);
+                } else {
+                    setStepError('validate', error.message);
+                }
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '💾 Save Purchase Request';
+            isSubmitting = false;
+        }
+
+        // ============================================
+        // MARKET SURVEY - STEP 1: CREATE
+        // ============================================
+        document.getElementById('msDate').value = new Date().toISOString().split('T')[0];
+
+        function generateMSNumber() {
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+            return `MS-${year}${month}${day}-${random}`;
+        }
+
+        document.getElementById('msFormNumber').value = generateMSNumber();
+
+        let msDraftItemCount = 0;
+        let lastCreatedSurvey = null;
+
+        function getDraftItemRows() {
+            return document.querySelectorAll('#msDraftItemContainer .ms-draft-row');
+        }
+
+        function addDraftItemRow(itemNo = '', quantity = 1, unit = '', description = '') {
+            const container = document.getElementById('msDraftItemContainer');
+            const row = document.createElement('div');
+            row.className = 'ms-draft-row';
+            row.dataset.index = msDraftItemCount;
+
+            row.innerHTML = `
+                <input type="text" class="d-item-no" value="${itemNo}" placeholder="1">
+                <input type="number" class="d-quantity" value="${quantity}" min="0.01" step="0.01">
+                <input type="text" class="d-unit" value="${unit}" placeholder="pc">
+                <input type="text" class="d-description" value="${description}" placeholder="Item description" required>
+                <button type="button" class="remove-btn" onclick="removeDraftItemRow(this)">✕</button>
+            `;
+
+            container.appendChild(row);
+            msDraftItemCount++;
+        }
+
+        function removeDraftItemRow(btn) {
+            const rows = getDraftItemRows();
+            if (rows.length > 1) {
+                btn.closest('.ms-draft-row').remove();
+            } else {
+                alert('You need at least one item.');
+            }
+        }
+
+        function resetCreateForm() {
+            if (confirm('Are you sure you want to reset this form? All data will be lost.')) {
+                document.getElementById('msCreateForm').reset();
+                document.getElementById('msDraftItemContainer').innerHTML = '';
+                document.getElementById('msFormNumber').value = generateMSNumber();
+                document.getElementById('msDate').value = new Date().toISOString().split('T')[0];
+                document.getElementById('msCreateStatusMessage').className = 'status-message';
+                document.getElementById('msCreateStatusMessage').style.display = 'none';
+                document.getElementById('msCreateStatusTracker').classList.remove('visible');
+                document.getElementById('msCreateProgressSteps').innerHTML = '';
+                addDraftItemRow('1', 1, '', '');
+                const submitBtn = document.getElementById('msCreateBtn');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '💾 Save Market Survey';
+                document.getElementById('msPrintBtn').disabled = true;
+                lastCreatedSurvey = null;
+                closeNotification();
+                document.getElementById('testResult').className = 'test-result';
+                document.getElementById('testResult').style.display = 'none';
+            }
+        }
+
+        const MS_CREATE_STEPS = [
+            { id: 'mc-validate', label: 'Validating form data...', icon: '🔍' },
+            { id: 'mc-save', label: 'Saving to Google Sheets...', icon: '💾' },
+            { id: 'mc-verify', label: 'Verifying save operation...', icon: '✅' }
+        ];
+        let mcStepStatus = {};
+        let mcStartTime = null;
+
+        function initMCTracker() {
+            const tracker = document.getElementById('msCreateStatusTracker');
+            tracker.classList.add('visible');
+            const container = document.getElementById('msCreateProgressSteps');
+            container.innerHTML = '';
+            mcStepStatus = {};
+            mcStartTime = Date.now();
+            MS_CREATE_STEPS.forEach((step) => {
+                mcStepStatus[step.id] = 'pending';
+                const div = document.createElement('div');
+                div.className = 'step';
+                div.id = 'step-' + step.id;
+                div.innerHTML = `
+                    <span class="icon pending" id="icon-${step.id}">${step.icon}</span>
+                    <span class="step-label">${step.label}</span>
+                    <span class="step-status pending" id="status-${step.id}">Pending</span>
+                    <span class="step-time" id="time-${step.id}">--</span>`;
+                container.appendChild(div);
+            });
+            document.getElementById('msCreateStatusBadge').textContent = 'Running...';
+            document.getElementById('msCreateStatusBadge').className = 'badge running';
+        }
+
+        function updateMCStep(stepId, status, message) {
+            const step = MS_CREATE_STEPS.find(s => s.id === stepId);
+            if (!step) return;
+            const el = document.getElementById('step-' + stepId);
+            const icon = document.getElementById('icon-' + stepId);
+            const statusEl = document.getElementById('status-' + stepId);
+            const timeEl = document.getElementById('time-' + stepId);
+            if (!el || !icon || !statusEl || !timeEl) return;
+            el.className = 'step';
+            icon.className = 'icon';
+            const elapsed = ((Date.now() - mcStartTime) / 1000).toFixed(1);
+            if (status === 'active') {
+                el.classList.add('active-step'); icon.classList.add('active'); icon.textContent = '⏳';
+                statusEl.textContent = message || 'Processing...'; statusEl.className = 'step-status active'; timeEl.textContent = elapsed + 's';
+            } else if (status === 'done') {
+                el.classList.add('done-step'); icon.classList.add('done'); icon.textContent = '✅';
+                statusEl.textContent = message || 'Done'; statusEl.className = 'step-status done'; timeEl.textContent = elapsed + 's';
+            } else if (status === 'error') {
+                el.classList.add('error-step'); icon.classList.add('error'); icon.textContent = '❌';
+                statusEl.textContent = message || 'Failed'; statusEl.className = 'step-status error'; timeEl.textContent = elapsed + 's';
+            }
+            mcStepStatus[stepId] = status;
+        }
+
+        function setMCError(stepId, message) {
+            updateMCStep(stepId, 'error', message);
+            document.getElementById('msCreateStatusBadge').textContent = 'Failed';
+            document.getElementById('msCreateStatusBadge').className = 'badge error';
+        }
+
+        function setAllMCDone() {
+            MS_CREATE_STEPS.forEach(step => { if (mcStepStatus[step.id] !== 'error') updateMCStep(step.id, 'done', 'Completed'); });
+            document.getElementById('msCreateStatusBadge').textContent = 'Completed';
+            document.getElementById('msCreateStatusBadge').className = 'badge done';
+        }
+
+        function showMCStatus(message, type) {
+            const statusDiv = document.getElementById('msCreateStatusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = 'status-message ' + type;
+            statusDiv.style.display = 'block';
+            statusDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        async function submitCreateSurvey() {
+            document.getElementById('msCreateStatusMessage').style.display = 'none';
+            initMCTracker();
+
+            try {
+                updateMCStep('mc-validate', 'active', 'Checking required fields...');
+                await sleep(250);
+
+                const required = ['msDate', 'msEndUser', 'msPurpose'];
+                for (let id of required) {
+                    const field = document.getElementById(id);
+                    if (!field || !field.value.trim()) {
+                        setMCError('mc-validate', 'Missing required field');
+                        showMCStatus('Please fill in all required fields.', 'error');
+                        if (field) field.focus();
+                        return;
+                    }
+                }
+
+                const rows = getDraftItemRows();
+                let items = [];
+                let hasValidItem = false;
+                rows.forEach(row => {
+                    const description = row.querySelector('.d-description')?.value?.trim() || '';
+                    const quantity = parseFloat(row.querySelector('.d-quantity')?.value) || 0;
+                    if (description && quantity > 0) {
+                        hasValidItem = true;
+                        items.push({
+                            itemNo: row.querySelector('.d-item-no')?.value?.trim() || '',
+                            quantity: quantity,
+                            unit: row.querySelector('.d-unit')?.value?.trim() || '',
+                            description: description
+                        });
+                    }
+                });
+
+                if (!hasValidItem) {
+                    setMCError('mc-validate', 'No valid items');
+                    showMCStatus('Please add at least one valid item with description and quantity.', 'error');
+                    return;
+                }
+                updateMCStep('mc-validate', 'done', items.length + ' item(s) ready');
+
+                const msNumber = document.getElementById('msFormNumber').value;
+                const msDate = document.getElementById('msDate').value;
+                const msEndUser = document.getElementById('msEndUser').value.trim();
+                const msPurpose = document.getElementById('msPurpose').value.trim();
+
+                const formData = {
+                    action: 'createMarketSurvey',
+                    msNumber: msNumber,
+                    dateAccomplished: msDate,
+                    endUser: msEndUser,
+                    purpose: msPurpose,
+                    items: items,
+                    timestamp: new Date().toISOString()
+                };
+
+                updateMCStep('mc-save', 'active', 'Sending data...');
+                await sleep(250);
+
+                const submitBtn = document.getElementById('msCreateBtn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner"></span> Saving...';
+
+                console.log('=== SENDING SURVEY DATA ===');
+                console.log('URL:', SCRIPT_URL);
+                console.log('Data:', JSON.stringify(formData, null, 2));
+
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error('HTTP error! status: ' + response.status + ' - ' + response.statusText);
+                }
+
+                const result = await response.json();
+                console.log('Response:', result);
+
+                if (result.success) {
+                    updateMCStep('mc-save', 'done', 'Saved');
+                    updateMCStep('mc-verify', 'active', 'Verifying...');
+                    await sleep(250);
+                    updateMCStep('mc-verify', 'done', 'Verified');
+                    setAllMCDone();
+
+                    showMCStatus('✅ Market Survey created! You can now print it and hand it to your 3 suppliers.', 'success');
+
+                    lastCreatedSurvey = { 
+                        msNumber: msNumber, 
+                        dateAccomplished: msDate, 
+                        endUser: msEndUser, 
+                        purpose: msPurpose, 
+                        items: items 
+                    };
+                    document.getElementById('msPrintBtn').disabled = false;
+
+                    showNotification(
+                        'Market Survey Created!',
+                        'Print it now and disseminate to your 3 suppliers.',
+                        msNumber,
+                        '',
+                        `<button class="btn btn-print" onclick="closeNotification(); printCurrentDraft();">🖨️ Print Form (3 copies)</button>
+                         <button class="btn" onclick="closeNotification()">Close</button>`
+                    );
+
+                } else {
+                    const errorMsg = result.error || 'Unknown error';
+                    console.error('Server error:', errorMsg);
+                    updateMCStep('mc-save', 'error', errorMsg);
+                    setMCError('mc-save', errorMsg);
+                    showMCStatus('❌ Error: ' + errorMsg, 'error');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                showMCStatus('❌ Error: ' + error.message, 'error');
+                const activeStep = MS_CREATE_STEPS.find(s => mcStepStatus[s.id] === 'active');
+                setMCError(activeStep ? activeStep.id : 'mc-validate', error.message);
+            }
+
+            const submitBtn = document.getElementById('msCreateBtn');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '💾 Save Market Survey';
+        }
+
+        // ============================================
+        // PRINT: Market Survey
+        // ============================================
+        const MS_INTRO_TEXT = "In determining the technical specifications of the goods it will procure, the PMO or end-user or implementing unit must consider the objectives of the project or the procurement at hand, and identify the standards that should be met by the goods in terms of function, performance, environmental interface and/or design. It must also conduct a market survey that will include a study of the available products or services, industry developments or standards, product or service standards specified by the authorized government entity like the Bureau of Product Standards, ISO9000 or similar local or international bodies. As a rule, Philippine standards, as specified by the Bureau of Product Standards, must be followed. For products where there are no specified Philippine standards, the standards of the country of origin or other international body may be considered. Product brochures, technical publications, industry newsletters, the industry itself, as well as the Internet, are good sources of product information. The conduct of a comparative study of the options available in the market and their relevance to the requirements of the Project is highly recommended. As such, please quote your best offer for the item/s listed below to determine the availability of the goods and cost or market price of the product to come up with a \"fair criteria\".";
+
+        function buildPrintCopyHtml(msData, copyIndex, totalCopies) {
+            let rows = '';
+            msData.items.forEach(it => {
+                rows += `<tr>
+                    <td style="text-align:center;">${escapeHtml(it.itemNo)}</td>
+                    <td style="text-align:center;">${escapeHtml(it.quantity)}</td>
+                    <td style="text-align:center;">${escapeHtml(it.unit)}</td>
+                    <td>${escapeHtml(it.description)}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>`;
+            });
+
+            return `
+                <div class="print-copy">
+                    <div class="print-copy-label">Supplier copy ${copyIndex} of ${totalCopies}</div>
+                    <div class="print-title">MARKET SURVEY</div>
+                    <div class="print-meta"><strong>MS No.:</strong> ${escapeHtml(msData.msNumber)}</div>
+                    <div class="print-meta" style="margin-bottom:10px;">Sir/Madam:</div>
+                    <div class="print-intro">${escapeHtml(MS_INTRO_TEXT)}</div>
+                    <div class="print-meta"><strong>End-User/Focal Person:</strong> ${escapeHtml(msData.endUser)}</div>
+                    <div class="print-meta"><strong>Purpose:</strong> ${escapeHtml(msData.purpose)}</div>
+
+                    <table class="print-table">
+                        <thead>
+                            <tr>
+                                <th>Item No.</th>
+                                <th>Quantity</th>
+                                <th>Unit</th>
+                                <th>Item Description</th>
+                                <th>Offer</th>
+                                <th>Unit Price</th>
+                                <th>Total Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                            <tr>
+                                <td colspan="4" style="border:none;"></td>
+                                <td style="text-align:center; font-weight:bold;">12% VAT</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="print-footer">
+                        <div class="sig-line"></div>
+                        <div style="text-align:center; font-size:11px; margin-bottom:14px;">PRINTED NAME/SIGNATURE OF AUTHORIZED REPRESENTATIVE</div>
+
+                        <div class="field-row"><label>Designation:</label><div class="fill-line"></div></div>
+                        <div class="field-row"><label>Company Name:</label><div class="fill-line"></div></div>
+                        <div class="field-row"><label>Business Address:</label><div class="fill-line"></div></div>
+                        <div class="field-row"><label>PhilGEPS Registration No.:</label><div class="fill-line"></div></div>
+                        <div class="field-row"><label>Telephone Number:</label><div class="fill-line"></div></div>
+                        <div class="field-row"><label>Email Address:</label><div class="fill-line"></div></div>
+                        <div class="field-row"><label>TIN:</label><div class="fill-line"></div></div>
+                        <div class="field-row"><label>Date Accomplished:</label><div class="fill-line"></div></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function printMarketSurveyForm(msData) {
+            const printArea = document.getElementById('printArea');
+            let html = '';
+            for (let i = 1; i <= 3; i++) {
+                html += buildPrintCopyHtml(msData, i, 3);
+            }
+            printArea.innerHTML = html;
+            window.print();
+        }
+
+        function printCurrentDraft() {
+            if (!lastCreatedSurvey) {
+                alert('Save the Market Survey first, then print.');
+                return;
+            }
+            printMarketSurveyForm(lastCreatedSurvey);
+        }
+
+        // ============================================
+        // MARKET SURVEY - STEP 2: ENCODE SUPPLIER QUOTES
+        // ============================================
+        let currentEncodeSurvey = null;
+
+        function showEncodeLoadStatus(message, type) {
+            const el = document.getElementById('encodeLoadStatus');
+            el.textContent = message;
+            el.className = 'ms-load-status ' + (type || '');
+        }
+
+        async function loadDraftForEncode() {
+            const msNumber = document.getElementById('encodeSearchInput').value.trim();
+            if (!msNumber) {
+                showEncodeLoadStatus('Enter a Market Survey number first.', 'error');
+                return;
+            }
+            await fetchAndApplyForEncode(msNumber);
+        }
+
+        async function fetchAndApplyForEncode(msNumber) {
+            showEncodeLoadStatus('Searching for ' + msNumber + ' ...', '');
+            try {
+                const url = SCRIPT_URL + '?action=getSurvey&msNumber=' + encodeURIComponent(msNumber);
+                console.log('Fetching:', url);
+                
+                const res = await fetch(url);
+                if (!res.ok) {
+                    throw new Error('HTTP error! status: ' + res.status);
+                }
+                const data = await res.json();
+                console.log('Response:', data);
+
+                if (!data.success) {
+                    showEncodeLoadStatus('❌ ' + (data.error || 'Market Survey not found'), 'error');
+                    document.querySelector('#msEncodeForm').style.display = 'none';
+                    document.getElementById('encodeHeaderSummary').classList.remove('visible');
+                    return;
+                }
+
+                currentEncodeSurvey = data;
+
+                const summary = document.getElementById('encodeHeaderSummary');
+                summary.innerHTML = `
+                    <strong>${escapeHtml(data.msNumber)}</strong> ${statusPillHtml(data.status)}<br>
+                    ${escapeHtml(data.dateAccomplished)} · ${escapeHtml(data.endUser)}<br>
+                    ${escapeHtml(data.purpose)}
+                `;
+                summary.classList.add('visible');
+
+                const container = document.getElementById('msEncodeItemContainer');
+                container.innerHTML = '';
+                data.items.forEach(it => {
+                    const row = document.createElement('div');
+                    row.className = 'ms-item-row';
+                    row.innerHTML = `
+                        <input type="text" class="e-item-no" value="${escapeHtml(it.itemNo)}" readonly style="background:#e9ecef;">
+                        <input type="text" class="e-quantity" value="${escapeHtml(it.quantity)}" readonly style="background:#e9ecef;">
+                        <input type="text" class="e-unit" value="${escapeHtml(it.unit)}" readonly style="background:#e9ecef;">
+                        <input type="text" class="e-description" value="${escapeHtml(it.description)}" readonly style="background:#e9ecef;">
+                        <input type="number" class="e-price1" value="${it.price1 || 0}" min="0" step="0.01" oninput="updateEncodeRowAverage(this.closest('.ms-item-row'))">
+                        <input type="number" class="e-price2" value="${it.price2 || 0}" min="0" step="0.01" oninput="updateEncodeRowAverage(this.closest('.ms-item-row'))">
+                        <input type="number" class="e-price3" value="${it.price3 || 0}" min="0" step="0.01" oninput="updateEncodeRowAverage(this.closest('.ms-item-row'))">
+                        <input type="text" class="avg-price" value="${(parseFloat(it.avgUnitPrice) || 0).toFixed(2)}" readonly>
+                    `;
+                    container.appendChild(row);
+                });
+
+                const suppliers = data.suppliers || [{}, {}, {}];
+                ['1', '2', '3'].forEach((n, idx) => {
+                    const s = suppliers[idx] || {};
+                    document.getElementById('s' + n + 'Name').value = s.name || '';
+                    document.getElementById('s' + n + 'Address').value = s.address || '';
+                    document.getElementById('s' + n + 'Philgeps').value = s.philgeps || '';
+                    document.getElementById('s' + n + 'Tin').value = s.tin || '';
+                    document.getElementById('s' + n + 'Contact').value = s.contact || '';
+                    document.getElementById('s' + n + 'Email').value = s.email || '';
+                    document.getElementById('s' + n + 'Signatory').value = s.signatory || '';
+                    document.getElementById('s' + n + 'Designation').value = s.designation || '';
+                });
+
+                document.getElementById('msEncodeForm').style.display = 'block';
+                showEncodeLoadStatus(`✅ Loaded ${data.items.length} item(s) from ${data.msNumber}. Enter the 3 suppliers' quoted prices below.`, 'success');
+                document.getElementById('encodeBrowseList').classList.remove('visible');
+                document.getElementById('encodeSearchInput').value = data.msNumber;
+
+            } catch (err) {
+                console.error('Error:', err);
+                showEncodeLoadStatus('❌ ' + err.message, 'error');
+            }
+        }
+
+        function updateEncodeRowAverage(row) {
+            const p1 = parseFloat(row.querySelector('.e-price1')?.value) || 0;
+            const p2 = parseFloat(row.querySelector('.e-price2')?.value) || 0;
+            const p3 = parseFloat(row.querySelector('.e-price3')?.value) || 0;
+            const avg = (p1 + p2 + p3) / 3;
+            row.querySelector('.avg-price').value = avg.toFixed(2);
+        }
+
+        async function toggleBrowseSurveysEncode() {
+            const list = document.getElementById('encodeBrowseList');
+            if (list.classList.contains('visible')) {
+                list.classList.remove('visible');
+                return;
+            }
+
+            list.innerHTML = '<div class="ms-browse-item">Loading recent surveys...</div>';
+            list.classList.add('visible');
+
+            try {
+                const res = await fetch(SCRIPT_URL + '?action=listSurveys');
+                const data = await res.json();
+
+                if (!data.success || !data.surveys || data.surveys.length === 0) {
+                    list.innerHTML = '<div class="ms-browse-item">No Market Surveys saved yet.</div>';
+                    return;
+                }
+
+                list.innerHTML = '';
+                data.surveys.forEach(s => {
+                    const div = document.createElement('div');
+                    div.className = 'ms-browse-item';
+                    div.innerHTML = `
+                        <div class="ms-num">${s.msNumber} ${statusPillHtml(s.status)}</div>
+                        <div class="ms-meta">${s.dateAccomplished || ''} · ${s.endUser || ''} — ${(s.purpose || '').substring(0, 60)}</div>
+                    `;
+                    div.onclick = () => fetchAndApplyForEncode(s.msNumber);
+                    list.appendChild(div);
+                });
+            } catch (err) {
+                list.innerHTML = '<div class="ms-browse-item">❌ ' + err.message + '</div>';
+            }
+        }
+
+        const MS_ENCODE_STEPS = [
+            { id: 'me-validate', label: 'Validating quotes...', icon: '🔍' },
+            { id: 'me-save', label: 'Saving to Google Sheets...', icon: '💾' },
+            { id: 'me-verify', label: 'Verifying save operation...', icon: '✅' }
+        ];
+        let meStepStatus = {};
+        let meStartTime = null;
+
+        function initMETracker() {
+            const tracker = document.getElementById('msEncodeStatusTracker');
+            tracker.classList.add('visible');
+            const container = document.getElementById('msEncodeProgressSteps');
+            container.innerHTML = '';
+            meStepStatus = {};
+            meStartTime = Date.now();
+            MS_ENCODE_STEPS.forEach((step) => {
+                meStepStatus[step.id] = 'pending';
+                const div = document.createElement('div');
+                div.className = 'step';
+                div.id = 'step-' + step.id;
+                div.innerHTML = `
+                    <span class="icon pending" id="icon-${step.id}">${step.icon}</span>
+                    <span class="step-label">${step.label}</span>
+                    <span class="step-status pending" id="status-${step.id}">Pending</span>
+                    <span class="step-time" id="time-${step.id}">--</span>`;
+                container.appendChild(div);
+            });
+            document.getElementById('msEncodeStatusBadge').textContent = 'Running...';
+            document.getElementById('msEncodeStatusBadge').className = 'badge running';
+        }
+
+        function updateMEStep(stepId, status, message) {
+            const step = MS_ENCODE_STEPS.find(s => s.id === stepId);
+            if (!step) return;
+            const el = document.getElementById('step-' + stepId);
+            const icon = document.getElementById('icon-' + stepId);
+            const statusEl = document.getElementById('status-' + stepId);
+            const timeEl = document.getElementById('time-' + stepId);
+            if (!el || !icon || !statusEl || !timeEl) return;
+            el.className = 'step';
+            icon.className = 'icon';
+            const elapsed = ((Date.now() - meStartTime) / 1000).toFixed(1);
+            if (status === 'active') {
+                el.classList.add('active-step'); icon.classList.add('active'); icon.textContent = '⏳';
+                statusEl.textContent = message || 'Processing...'; statusEl.className = 'step-status active'; timeEl.textContent = elapsed + 's';
+            } else if (status === 'done') {
+                el.classList.add('done-step'); icon.classList.add('done'); icon.textContent = '✅';
+                statusEl.textContent = message || 'Done'; statusEl.className = 'step-status done'; timeEl.textContent = elapsed + 's';
+            } else if (status === 'error') {
+                el.classList.add('error-step'); icon.classList.add('error'); icon.textContent = '❌';
+                statusEl.textContent = message || 'Failed'; statusEl.className = 'step-status error'; timeEl.textContent = elapsed + 's';
+            }
+            meStepStatus[stepId] = status;
+        }
+
+        function setMEError(stepId, message) {
+            updateMEStep(stepId, 'error', message);
+            document.getElementById('msEncodeStatusBadge').textContent = 'Failed';
+            document.getElementById('msEncodeStatusBadge').className = 'badge error';
+        }
+
+        function setAllMEDone() {
+            MS_ENCODE_STEPS.forEach(step => { if (meStepStatus[step.id] !== 'error') updateMEStep(step.id, 'done', 'Completed'); });
+            document.getElementById('msEncodeStatusBadge').textContent = 'Completed';
+            document.getElementById('msEncodeStatusBadge').className = 'badge done';
+        }
+
+        function showMEStatus(message, type) {
+            const statusDiv = document.getElementById('msEncodeStatusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = 'status-message ' + type;
+            statusDiv.style.display = 'block';
+            statusDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        async function submitEncodeQuotes() {
+            if (!currentEncodeSurvey) {
+                alert('Load a Market Survey first.');
+                return;
+            }
+
+            document.getElementById('msEncodeStatusMessage').style.display = 'none';
+            initMETracker();
+
+            try {
+                updateMEStep('me-validate', 'active', 'Checking supplier names...');
+                await sleep(250);
+
+                const required = ['s1Name', 's2Name', 's3Name'];
+                for (let id of required) {
+                    const field = document.getElementById(id);
+                    if (!field || !field.value.trim()) {
+                        setMEError('me-validate', 'Missing supplier name');
+                        showMEStatus('Please fill in all 3 supplier company names.', 'error');
+                        if (field) field.focus();
+                        return;
+                    }
+                }
+
+                const itemRows = document.querySelectorAll('#msEncodeItemContainer .ms-item-row');
+                let items = [];
+                itemRows.forEach(row => {
+                    items.push({
+                        itemNo: row.querySelector('.e-item-no')?.value?.trim() || '',
+                        price1: parseFloat(row.querySelector('.e-price1')?.value) || 0,
+                        price2: parseFloat(row.querySelector('.e-price2')?.value) || 0,
+                        price3: parseFloat(row.querySelector('.e-price3')?.value) || 0
+                    });
+                });
+
+                updateMEStep('me-validate', 'done', items.length + ' item(s) ready');
+
+                const formData = {
+                    action: 'encodeMarketSurveyQuotes',
+                    msNumber: currentEncodeSurvey.msNumber,
+                    items: items,
+                    suppliers: [
+                        {
+                            name: document.getElementById('s1Name').value.trim(),
+                            address: document.getElementById('s1Address').value.trim(),
+                            philgeps: document.getElementById('s1Philgeps').value.trim(),
+                            tin: document.getElementById('s1Tin').value.trim(),
+                            contact: document.getElementById('s1Contact').value.trim(),
+                            email: document.getElementById('s1Email').value.trim(),
+                            signatory: document.getElementById('s1Signatory').value.trim(),
+                            designation: document.getElementById('s1Designation').value.trim()
+                        },
+                        {
+                            name: document.getElementById('s2Name').value.trim(),
+                            address: document.getElementById('s2Address').value.trim(),
+                            philgeps: document.getElementById('s2Philgeps').value.trim(),
+                            tin: document.getElementById('s2Tin').value.trim(),
+                            contact: document.getElementById('s2Contact').value.trim(),
+                            email: document.getElementById('s2Email').value.trim(),
+                            signatory: document.getElementById('s2Signatory').value.trim(),
+                            designation: document.getElementById('s2Designation').value.trim()
+                        },
+                        {
+                            name: document.getElementById('s3Name').value.trim(),
+                            address: document.getElementById('s3Address').value.trim(),
+                            philgeps: document.getElementById('s3Philgeps').value.trim(),
+                            tin: document.getElementById('s3Tin').value.trim(),
+                            contact: document.getElementById('s3Contact').value.trim(),
+                            email: document.getElementById('s3Email').value.trim(),
+                            signatory: document.getElementById('s3Signatory').value.trim(),
+                            designation: document.getElementById('s3Designation').value.trim()
+                        }
+                    ]
+                };
+
+                updateMEStep('me-save', 'active', 'Sending data...');
+                await sleep(250);
+
+                const submitBtn = document.getElementById('msEncodeBtn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner"></span> Saving...';
+
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    updateMEStep('me-save', 'done', 'Saved');
+                    updateMEStep('me-verify', 'active', 'Verifying...');
+                    await sleep(250);
+                    updateMEStep('me-verify', 'done', 'Verified');
+                    setAllMEDone();
+
+                    showMEStatus('✅ Supplier quotes saved! This Market Survey is now marked "Quoted" and ready to use in a Purchase Request.', 'success');
+
+                    showNotification(
+                        'Quotes Saved!',
+                        'This survey is now ready to load into a Purchase Request.',
+                        currentEncodeSurvey.msNumber,
+                        '',
+                        `<button class="btn" onclick="closeNotification(); switchTab('pr');">🧾 Go to Purchase Request</button>
+                         <button class="btn" onclick="closeNotification()">Close</button>`
+                    );
+
+                } else {
+                    updateMEStep('me-save', 'error', result.error || 'Save failed');
+                    setMEError('me-save', result.error || 'Unknown error');
+                    showMEStatus('❌ Error: ' + (result.error || 'Unknown error'), 'error');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                showMEStatus('❌ Error: ' + error.message, 'error');
+                const activeStep = MS_ENCODE_STEPS.find(s => meStepStatus[s.id] === 'active');
+                setMEError(activeStep ? activeStep.id : 'me-validate', error.message);
+            }
+
+            const submitBtn = document.getElementById('msEncodeBtn');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '💾 Save Supplier Quotes';
+        }
+
+        // ============================================
+        // INITIALIZE
+        // ============================================
+        addItemRow('', '', '', 1, 0);
+        addItemRow('', '', '', 1, 0);
+        addDraftItemRow('1', 1, '', '');
+
+        document.getElementById('notificationOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeNotification();
+        });
+
+        // Show a warning if SCRIPT_URL hasn't been updated
+        if (SCRIPT_URL.includes('YOUR_DEPLOYMENT_ID')) {
+            console.warn('⚠️ Please update SCRIPT_URL with your actual Web App URL!');
+            console.warn('Go to Apps Script → Deploy → Manage deployments → Copy the Web App URL');
+        } else {
+            console.log('✅ SCRIPT_URL is set to:', SCRIPT_URL);
+        }
+    </script>
+</body>
+</html>
