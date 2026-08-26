@@ -298,10 +298,11 @@
         .test-result {
             margin-top: 10px;
             padding: 10px;
-            background: white;
             border-radius: 4px;
             font-size: 13px;
             display: none;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
         .test-result.success {
@@ -316,6 +317,13 @@
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
+        }
+
+        .test-result.info {
+            display: block;
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
         }
 
         .status-tracker {
@@ -761,7 +769,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>📋 PROCUREMENT SYSTEM</h1>
+        <h1>📋 PROCUREMENT SYSTEM v1</h1>
 
         <div class="tab-nav">
             <button type="button" class="tab-btn active" id="tabBtn-pr" onclick="switchTab('pr')">🧾 Purchase Request</button>
@@ -1095,117 +1103,131 @@
         // ============================================
         // TEST FUNCTIONS
         // ============================================
-        function showTestResult(message, isSuccess) {
+        function showTestResult(message, type) {
             const div = document.getElementById('testResult');
             div.className = 'test-result';
             div.innerHTML = message.replace(/\n/g, '<br>');
-            if (isSuccess) {
-                div.classList.add('success');
-            } else {
-                div.classList.add('error');
-            }
+            div.classList.add(type);
             div.style.display = 'block';
         }
 
         async function testDirectAPI() {
-    console.log('=== TEST: Direct API Call ===');
-    console.log('SCRIPT_URL:', SCRIPT_URL);
-    
-    if (SCRIPT_URL.includes('YOUR_DEPLOYMENT_ID')) {
-        const msg = '❌ Please update SCRIPT_URL with your actual deployment URL!';
-        alert(msg);
-        showTestResult(msg, false);
-        return;
-    }
+            console.log('=== TEST: Direct API Call ===');
+            console.log('SCRIPT_URL:', SCRIPT_URL);
+            
+            if (SCRIPT_URL.includes('YOUR_DEPLOYMENT_ID')) {
+                const msg = '❌ Please update SCRIPT_URL with your actual deployment URL!\n\n' +
+                            '1. Go to Apps Script → Deploy → Manage deployments\n' +
+                            '2. Copy the Web App URL (ends with /exec)\n' +
+                            '3. Paste it in the HTML file at: const SCRIPT_URL = "YOUR_URL"';
+                alert(msg);
+                showTestResult(msg, 'error');
+                return;
+            }
 
-    try {
-        // First, test if the Web App is reachable (like testListSurveys does)
-        console.log('Testing connection to:', SCRIPT_URL);
-        
-        // Test with a simple GET request first
-        const testResponse = await fetch(SCRIPT_URL + '?action=listSurveys');
-        console.log('Connection test status:', testResponse.status);
-        
-        if (!testResponse.ok) {
-            throw new Error('Web App returned status: ' + testResponse.status);
-        }
-        
-        const testResult = await testResponse.json();
-        console.log('Connection test result:', testResult);
-        
-        if (!testResult.success) {
-            throw new Error('Web App error: ' + (testResult.error || 'Unknown'));
-        }
-        
-        alert('✅ Connection successful! Web App is reachable.\n\n' +
-              'Found ' + (testResult.surveys || []).length + ' existing surveys.\n' +
-              'Now testing the CREATE endpoint...');
-
-        // Now test the create endpoint with the EXACT same format as your working test
-        const msNumber = 'MS-HTML-TEST-' + new Date().getTime();
-        const formData = {
-            action: 'createMarketSurvey',
-            msNumber: msNumber,
-            dateAccomplished: '2026-08-26',
-            endUser: 'HTML Test User',
-            purpose: 'Testing from HTML',
-            items: [
-                {
-                    itemNo: '1',
-                    quantity: 5,
-                    unit: 'pcs',
-                    description: 'Test Item from HTML'
+            try {
+                // First, test if the Web App is reachable
+                console.log('Testing connection to:', SCRIPT_URL);
+                
+                // Test the list endpoint first (GET request is simpler)
+                try {
+                    const testResponse = await fetch(SCRIPT_URL + '?action=listSurveys');
+                    console.log('Connection test response status:', testResponse.status);
+                    
+                    if (!testResponse.ok) {
+                        throw new Error('Web App returned status: ' + testResponse.status + ' - Make sure the Web App is deployed with "Anyone" access');
+                    }
+                    
+                    const testData = await testResponse.json();
+                    console.log('Connection test result:', testData);
+                    
+                    if (!testData.success) {
+                        throw new Error('Web App responded with error: ' + (testData.error || 'Unknown error'));
+                    }
+                    
+                    alert('✅ Connection successful! Web App is reachable.\n\n' +
+                          'Found ' + (testData.surveys || []).length + ' existing surveys.\n' +
+                          'Now testing the CREATE endpoint...');
+                          
+                } catch (connError) {
+                    throw new Error('Cannot reach Web App: ' + connError.message + 
+                                  '\n\nMake sure:\n' +
+                                  '1. The URL is correct (ends with /exec)\n' +
+                                  '2. The Web App is deployed\n' +
+                                  '3. Access is set to "Anyone"');
                 }
-            ],
-            timestamp: new Date().toISOString()
-        };
-        
-        console.log('Sending POST data:', JSON.stringify(formData, null, 2));
-        
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        });
-        
-        console.log('POST response status:', response.status);
-        
-        // Check if the response is JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            const text = await response.text();
-            console.error('Non-JSON response:', text);
-            throw new Error('Server returned non-JSON response: ' + text.substring(0, 100));
+
+                // Now test the create endpoint
+                const msNumber = 'MS-HTML-TEST-' + new Date().getTime();
+                const testData = {
+                    action: 'createMarketSurvey',
+                    msNumber: msNumber,
+                    dateAccomplished: new Date().toISOString().split('T')[0],
+                    endUser: 'HTML Test User',
+                    purpose: 'Testing from HTML',
+                    items: [
+                        {
+                            itemNo: '1',
+                            quantity: 5,
+                            unit: 'pcs',
+                            description: 'Test Item from HTML'
+                        }
+                    ],
+                    timestamp: new Date().toISOString()
+                };
+                
+                console.log('Sending create data:', JSON.stringify(testData, null, 2));
+                
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testData)
+                });
+                
+                console.log('Create response status:', response.status);
+                
+                // Check if the response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('Non-JSON response:', text);
+                    throw new Error('Server returned non-JSON response: ' + text.substring(0, 100));
+                }
+                
+                if (!response.ok) {
+                    throw new Error('Create endpoint returned status: ' + response.status + ' - ' + response.statusText);
+                }
+                
+                const result = await response.json();
+                console.log('Create response data:', result);
+                
+                if (result.success) {
+                    const msg = '✅ Test successful!\n\n' +
+                                'MS Number: ' + msNumber + '\n' +
+                                'Items added: ' + (result.itemsAdded || 0) + '\n\n' +
+                                '✅ Check your Google Sheet!\n' +
+                                '📋 Click "Test List Surveys" to see it in the list.';
+                    alert(msg);
+                    showTestResult(msg, 'success');
+                } else {
+                    const msg = '❌ Test failed: ' + (result.error || 'Unknown error');
+                    alert(msg);
+                    showTestResult(msg, 'error');
+                }
+                return result;
+                
+            } catch (error) {
+                console.error('Test failed:', error);
+                const msg = '❌ Error: ' + error.message + '\n\n' +
+                            'But your "Test List Surveys" is working, so the connection is fine.\n' +
+                            'The issue is likely with the CREATE endpoint.\n\n' +
+                            'Check the Apps Script logs (View → Logs) for more details.';
+                alert(msg);
+                showTestResult(msg.replace(/\n/g, '<br>'), 'error');
+                return { success: false, error: error.message };
+            }
         }
-        
-        const result = await response.json();
-        console.log('POST response data:', result);
-        
-        if (result.success) {
-            const msg = '✅ Test successful!\n\n' +
-                        'MS Number: ' + msNumber + '\n' +
-                        'Items added: ' + (result.itemsAdded || 0) + '\n\n' +
-                        '✅ Check your Google Sheet!\n' +
-                        '📋 Click "Test List Surveys" to see it in the list.';
-            alert(msg);
-            showTestResult(msg.replace(/\n/g, '<br>'), true);
-        } else {
-            const msg = '❌ Test failed: ' + (result.error || 'Unknown error');
-            alert(msg);
-            showTestResult(msg, false);
-        }
-        return result;
-        
-    } catch (error) {
-        console.error('Test failed:', error);
-        const msg = '❌ Error: ' + error.message + '\n\n' +
-                    'But your "Test List Surveys" is working, so the connection is fine.\n' +
-                    'The issue is likely with the CREATE endpoint.';
-        alert(msg);
-        showTestResult(msg.replace(/\n/g, '<br>'), false);
-        return { success: false, error: error.message };
+
         async function testListSurveys() {
             console.log('=== TEST: List Surveys ===');
             console.log('SCRIPT_URL:', SCRIPT_URL);
@@ -1226,14 +1248,20 @@
                 
                 if (result.success) {
                     const count = (result.surveys || []).length;
-                    const msg = '✅ Found ' + count + ' survey(s)\n\n' + 
-                        (count > 0 ? result.surveys.map(s => '• ' + s.msNumber + ' (' + s.status + ')').join('\n') : 'No surveys yet');
+                    let msg = '✅ Found ' + count + ' survey(s)\n\n';
+                    if (count > 0) {
+                        result.surveys.forEach(s => {
+                            msg += '• ' + s.msNumber + ' (' + s.status + ')\n';
+                        });
+                    } else {
+                        msg += 'No surveys yet. Create one using "Test API Connection" or the form above.';
+                    }
                     alert(msg);
-                    showTestResult(msg, true);
+                    showTestResult(msg, 'success');
                 } else {
                     const msg = '❌ Failed: ' + (result.error || 'Unknown error');
                     alert(msg);
-                    showTestResult(msg, false);
+                    showTestResult(msg, 'error');
                 }
                 return result;
                 
@@ -1241,7 +1269,7 @@
                 console.error('Test failed:', error);
                 const msg = '❌ Error: ' + error.message;
                 alert(msg);
-                showTestResult(msg, false);
+                showTestResult(msg, 'error');
                 return { success: false, error: error.message };
             }
         }
@@ -1272,17 +1300,26 @@
                 console.log('Response:', result);
                 
                 if (result.success) {
-                    const msg = '✅ Survey found!\n\n' +
+                    let msg = '✅ Survey found!\n\n' +
                         'MS Number: ' + result.msNumber + '\n' +
                         'Status: ' + result.status + '\n' +
                         'End User: ' + result.endUser + '\n' +
-                        'Items: ' + (result.items || []).length + ' item(s)';
+                        'Purpose: ' + result.purpose + '\n' +
+                        'Items: ' + (result.items || []).length + ' item(s)\n\n';
+                    
+                    if (result.items && result.items.length > 0) {
+                        msg += 'Items:\n';
+                        result.items.forEach(item => {
+                            msg += '  • ' + item.itemNo + ': ' + item.description + ' (' + item.quantity + ' ' + item.unit + ')\n';
+                        });
+                    }
+                    
                     alert(msg);
-                    showTestResult(msg, true);
+                    showTestResult(msg, 'success');
                 } else {
                     const msg = '❌ Survey not found: ' + (result.error || 'Unknown error');
                     alert(msg);
-                    showTestResult(msg, false);
+                    showTestResult(msg, 'error');
                 }
                 return result;
                 
@@ -1290,7 +1327,7 @@
                 console.error('Test failed:', error);
                 const msg = '❌ Error: ' + error.message;
                 alert(msg);
-                showTestResult(msg, false);
+                showTestResult(msg, 'error');
                 return { success: false, error: error.message };
             }
         }
@@ -2025,6 +2062,14 @@
 
                 console.log('Response status:', response.status);
 
+                // Check if the response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('Non-JSON response:', text);
+                    throw new Error('Server returned non-JSON response: ' + text.substring(0, 100));
+                }
+
                 if (!response.ok) {
                     throw new Error('HTTP error! status: ' + response.status + ' - ' + response.statusText);
                 }
@@ -2516,8 +2561,14 @@
         if (SCRIPT_URL.includes('YOUR_DEPLOYMENT_ID')) {
             console.warn('⚠️ Please update SCRIPT_URL with your actual Web App URL!');
             console.warn('Go to Apps Script → Deploy → Manage deployments → Copy the Web App URL');
+            const warningMsg = '⚠️ Please update SCRIPT_URL in the HTML file with your actual Web App URL.\n\n' +
+                              '1. Go to Apps Script → Deploy → Manage deployments\n' +
+                              '2. Copy the Web App URL (ends with /exec)\n' +
+                              '3. Find const SCRIPT_URL = \'...\' in the HTML and update it';
+            showTestResult(warningMsg, 'info');
         } else {
             console.log('✅ SCRIPT_URL is set to:', SCRIPT_URL);
+            showTestResult('✅ SCRIPT_URL is configured. Click "Test API Connection" to verify.', 'info');
         }
     </script>
 </body>
