@@ -1098,7 +1098,7 @@
         // 1. Go to Apps Script → Deploy → Manage deployments
         // 2. Copy the Web App URL (ends with /exec)
         // 3. Paste it below
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwfgKRdwaQHOit206hFr16dNjKlAT6Kv9shx-9ZzrjqnQnNwFmSD7nB5QG7lLlE8tHfwA/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz5qklyPCtOVdSgeSXHHwELpjVXinHIYjvCx8xf95AVy8NgwHS5xemEd9OzPzWnWCXvBA/exec';
 
         // ============================================
         // TEST FUNCTIONS
@@ -1180,7 +1180,7 @@
                 
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(testData)
                 });
                 
@@ -1790,7 +1790,7 @@
 
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(formData)
                 });
 
@@ -2056,7 +2056,7 @@
 
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(formData)
                 });
 
@@ -2505,7 +2505,7 @@
 
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(formData)
                 });
                 const result = await response.json();
