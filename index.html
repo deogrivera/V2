@@ -32,6 +32,7 @@
     .form-group input, .form-group textarea, .form-group select { flex:1; padding:8px 12px; border:1px solid #ccc; border-radius:4px; font-size:14px; min-width:200px; }
     .form-group textarea { min-height:60px; resize:vertical; }
     .form-group .help-text { font-size:11px; color:#6c757d; margin-left:180px; margin-top:4px; width:100%; }
+    .form-group .btn-small { margin-left:8px; }
 
     .row-header, .draft-row, .encode-row, .edit-row { display:grid; gap:6px; margin-bottom:8px; align-items:center; }
     .draft-row, .row-header.draft { grid-template-columns:60px 60px 80px 1fr 60px 100px 40px; }
@@ -52,8 +53,10 @@
     .btn-print { background:#17a2b8; } .btn-print:hover { background:#128294; }
     .btn-secondary { background:#6c757d; } .btn-secondary:hover { background:#5a6268; }
     .btn-warning { background:#ffc107; color:#212529; } .btn-warning:hover { background:#e0a800; }
+    .btn-info { background:#0dcaf0; color:#000; } .btn-info:hover { background:#0bb5d9; }
     .btn:disabled { opacity:0.6; cursor:not-allowed; }
     .btn-small { padding:6px 12px; font-size:12px; }
+    .btn-sm { padding:4px 10px; font-size:11px; }
 
     .button-group { margin-top:20px; text-align:center; }
 
@@ -81,6 +84,10 @@
     .summary-box.visible { display:block; }
 
     .edit-badge { display:inline-block; background:#d97706; color:#fff; padding:2px 10px; border-radius:12px; font-size:10px; margin-left:8px; }
+
+    .supplier-select-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+    .supplier-select-row select { flex:1; padding:8px 12px; border:1px solid #ccc; border-radius:4px; font-size:13px; }
+    .supplier-select-row .btn-sm { white-space:nowrap; }
 
     #printArea { display:none; }
     @media print {
@@ -117,6 +124,7 @@
         .draft-row, .row-header.draft, .edit-row, .row-header.edit, .encode-row, .row-header.encode { grid-template-columns:1fr 1fr; }
         .row-header { display:none; }
         .container { padding:15px; }
+        .supplier-select-row { flex-wrap:wrap; }
     }
 </style>
 </head>
@@ -134,6 +142,7 @@
         <button type="button" class="subtab-btn active" id="tabBtn-create" onclick="switchSubtab('create')">📝 Create Survey</button>
         <button type="button" class="subtab-btn" id="tabBtn-edit" onclick="switchSubtab('edit')">✏️ Edit Survey</button>
         <button type="button" class="subtab-btn" id="tabBtn-encode" onclick="switchSubtab('encode')">📥 Encode Quotes</button>
+        <button type="button" class="subtab-btn" id="tabBtn-suppliers" onclick="switchSubtab('suppliers')">🏢 Suppliers</button>
     </div>
 
     <!-- ============ STEP 1: CREATE ============ -->
@@ -243,6 +252,11 @@
 
             <div class="form-section supplier-block">
                 <h3>Supplier 1</h3>
+                <div class="supplier-select-row">
+                    <select id="s1Select" onchange="loadSupplier(1, this.value)"><option value="">-- Select or type below --</option></select>
+                    <button type="button" class="btn btn-info btn-sm" onclick="saveSupplier(1)">💾 Save to DB</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="refreshSuppliers()">🔄 Refresh</button>
+                </div>
                 <div class="form-group"><label>Company Name:</label><input type="text" id="s1Name" required></div>
                 <div class="form-group"><label>Business Address:</label><input type="text" id="s1Address"></div>
                 <div class="form-group"><label>PhilGEPS Reg. No.:</label><input type="text" id="s1Philgeps"></div>
@@ -255,6 +269,10 @@
 
             <div class="form-section supplier-block">
                 <h3>Supplier 2</h3>
+                <div class="supplier-select-row">
+                    <select id="s2Select" onchange="loadSupplier(2, this.value)"><option value="">-- Select or type below --</option></select>
+                    <button type="button" class="btn btn-info btn-sm" onclick="saveSupplier(2)">💾 Save to DB</button>
+                </div>
                 <div class="form-group"><label>Company Name:</label><input type="text" id="s2Name" required></div>
                 <div class="form-group"><label>Business Address:</label><input type="text" id="s2Address"></div>
                 <div class="form-group"><label>PhilGEPS Reg. No.:</label><input type="text" id="s2Philgeps"></div>
@@ -267,6 +285,10 @@
 
             <div class="form-section supplier-block">
                 <h3>Supplier 3</h3>
+                <div class="supplier-select-row">
+                    <select id="s3Select" onchange="loadSupplier(3, this.value)"><option value="">-- Select or type below --</option></select>
+                    <button type="button" class="btn btn-info btn-sm" onclick="saveSupplier(3)">💾 Save to DB</button>
+                </div>
                 <div class="form-group"><label>Company Name:</label><input type="text" id="s3Name" required></div>
                 <div class="form-group"><label>Business Address:</label><input type="text" id="s3Address"></div>
                 <div class="form-group"><label>PhilGEPS Reg. No.:</label><input type="text" id="s3Philgeps"></div>
@@ -284,6 +306,20 @@
 
         <div id="encodeStatus" class="status-message"></div>
     </div>
+
+    <!-- ============ STEP 4: SUPPLIERS MANAGEMENT ============ -->
+    <div id="view-suppliers" class="subtab-view">
+        <div class="form-section">
+            <h3>🏢 Supplier Database</h3>
+            <div style="margin-bottom:15px;">
+                <button type="button" class="btn btn-info btn-small" onclick="loadSuppliersList()">🔄 Refresh List</button>
+                <span style="font-size:12px; color:#6c757d; margin-left:10px;">Manage your supplier database here. Suppliers added from the Encode Quotes tab will appear here.</span>
+            </div>
+            <div id="suppliersList" style="max-height:500px; overflow-y:auto; border:1px solid #dee2e6; border-radius:4px;">
+                <div style="padding:20px; text-align:center; color:#6c757d;">Click "Refresh List" to load suppliers.</div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div id="printArea"></div>
@@ -292,8 +328,19 @@
 // ============================================
 // CONFIG — replace with your deployed Web App URL
 // ============================================
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwGNnJmff-3L84rvZisOL3cB5Vyx4UZeufgko1nLFZAULZ5wT5CvurtIEIaKZMP54ye3g/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwvX8Ep8LrJE1uZA-FiQVgNOwqBGqJ8icRSB3dSiJMYiUk3uRmT7oTxdl8I_aEGnAUqGA/exec';
 
+// ============================================
+// GLOBAL VARIABLES
+// ============================================
+let supplierData = [];
+let currentSurvey = null;
+let lastSurvey = null;
+let editSurveyData = null;
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
 function escapeHtml(str) {
     if (str == null) return '';
     const div = document.createElement('div');
@@ -325,6 +372,8 @@ window.testConnection = async function() {
         if (data.success && data.status === 'Online') {
             dot.className = 'dot ok';
             msg.textContent = '✅ Connected — spreadsheet ' + data.spreadsheetId;
+            // Load suppliers on connection
+            loadSuppliers();
         } else {
             dot.className = 'dot bad';
             msg.textContent = '⚠️ Unexpected response: ' + JSON.stringify(data);
@@ -347,13 +396,208 @@ function switchSubtab(tab) {
     document.getElementById('view-create').classList.toggle('active', tab === 'create');
     document.getElementById('view-edit').classList.toggle('active', tab === 'edit');
     document.getElementById('view-encode').classList.toggle('active', tab === 'encode');
+    document.getElementById('view-suppliers').classList.toggle('active', tab === 'suppliers');
     document.getElementById('tabBtn-create').classList.toggle('active', tab === 'create');
     document.getElementById('tabBtn-edit').classList.toggle('active', tab === 'edit');
     document.getElementById('tabBtn-encode').classList.toggle('active', tab === 'encode');
+    document.getElementById('tabBtn-suppliers').classList.toggle('active', tab === 'suppliers');
+    
+    if (tab === 'suppliers') {
+        loadSuppliersList();
+    }
 }
 
 // ============================================
-// STEP 1: CREATE
+// SUPPLIER DATABASE FUNCTIONS
+// ============================================
+async function loadSuppliers() {
+    try {
+        const res = await fetch(SCRIPT_URL + '?action=getSuppliers');
+        const data = await res.json();
+        if (data.success) {
+            supplierData = data.suppliers || [];
+            populateSupplierDropdowns();
+            console.log('Loaded ' + supplierData.length + ' suppliers');
+        } else {
+            console.error('Failed to load suppliers:', data.error);
+        }
+    } catch (err) {
+        console.error('Error loading suppliers:', err);
+    }
+}
+
+function populateSupplierDropdowns() {
+    const selects = ['s1Select', 's2Select', 's3Select'];
+    selects.forEach(id => {
+        const select = document.getElementById(id);
+        if (!select) return;
+        const currentValue = select.value;
+        select.innerHTML = '<option value="">-- Select from database --</option>';
+        supplierData.forEach(s => {
+            const option = document.createElement('option');
+            option.value = s.id;
+            // Show both name and ID for reference
+            option.textContent = s.name + ' (' + s.id + ')';
+            option.dataset.supplier = JSON.stringify(s);
+            select.appendChild(option);
+        });
+        // Add an option for "New Supplier"
+        const newOption = document.createElement('option');
+        newOption.value = '__new__';
+        newOption.textContent = '➕ Add New Supplier...';
+        select.appendChild(newOption);
+        if (currentValue) select.value = currentValue;
+    });
+}
+
+async function loadSupplier(supplierNum, supplierId) {
+    if (!supplierId || supplierId === '') {
+        // Clear fields
+        clearSupplierFields(supplierNum);
+        return;
+    }
+    
+    if (supplierId === '__new__') {
+        // User wants to add a new supplier - clear fields for typing
+        clearSupplierFields(supplierNum);
+        document.getElementById('s' + supplierNum + 'Name').focus();
+        return;
+    }
+    
+    // Find supplier in data
+    const supplier = supplierData.find(s => s.id === supplierId);
+    if (supplier) {
+        document.getElementById('s' + supplierNum + 'Name').value = supplier.name || '';
+        document.getElementById('s' + supplierNum + 'Address').value = supplier.address || '';
+        document.getElementById('s' + supplierNum + 'Philgeps').value = supplier.philgeps || '';
+        document.getElementById('s' + supplierNum + 'Tin').value = supplier.tin || '';
+        document.getElementById('s' + supplierNum + 'Contact').value = supplier.contact || '';
+        document.getElementById('s' + supplierNum + 'Email').value = supplier.email || '';
+        document.getElementById('s' + supplierNum + 'Signatory').value = supplier.signatory || '';
+        document.getElementById('s' + supplierNum + 'Designation').value = supplier.designation || '';
+    }
+}
+
+function clearSupplierFields(num) {
+    document.getElementById('s' + num + 'Name').value = '';
+    document.getElementById('s' + num + 'Address').value = '';
+    document.getElementById('s' + num + 'Philgeps').value = '';
+    document.getElementById('s' + num + 'Tin').value = '';
+    document.getElementById('s' + num + 'Contact').value = '';
+    document.getElementById('s' + num + 'Email').value = '';
+    document.getElementById('s' + num + 'Signatory').value = '';
+    document.getElementById('s' + num + 'Designation').value = '';
+}
+
+function refreshSuppliers() {
+    loadSuppliers();
+    showEncodeStatus('🔄 Supplier list refreshed!', 'info');
+}
+
+async function saveSupplier(supplierNum) {
+    const name = document.getElementById('s' + supplierNum + 'Name').value.trim();
+    if (!name) {
+        showEncodeStatus('Please enter a company name to save.', 'error');
+        return;
+    }
+    
+    const payload = {
+        action: 'addSupplier',
+        name: name,
+        address: document.getElementById('s' + supplierNum + 'Address').value.trim(),
+        philgeps: document.getElementById('s' + supplierNum + 'Philgeps').value.trim(),
+        tin: document.getElementById('s' + supplierNum + 'Tin').value.trim(),
+        contact: document.getElementById('s' + supplierNum + 'Contact').value.trim(),
+        email: document.getElementById('s' + supplierNum + 'Email').value.trim(),
+        signatory: document.getElementById('s' + supplierNum + 'Signatory').value.trim(),
+        designation: document.getElementById('s' + supplierNum + 'Designation').value.trim()
+    };
+    
+    try {
+        const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        
+        if (result.success) {
+            showEncodeStatus('✅ Supplier "' + name + '" saved to database!', 'success');
+            // Refresh supplier list
+            await loadSuppliers();
+            // Select the newly added supplier
+            const select = document.getElementById('s' + supplierNum + 'Select');
+            // Find the supplier ID
+            const updatedSuppliers = supplierData.find(s => s.name === name);
+            if (updatedSuppliers) {
+                select.value = updatedSuppliers.id;
+                // Load the supplier data
+                loadSupplier(supplierNum, updatedSuppliers.id);
+            }
+        } else {
+            showEncodeStatus('❌ ' + (result.error || 'Failed to save supplier'), 'error');
+        }
+    } catch (err) {
+        showEncodeStatus('❌ ' + err.message, 'error');
+    }
+}
+
+async function loadSuppliersList() {
+    const container = document.getElementById('suppliersList');
+    container.innerHTML = '<div style="padding:20px; text-align:center; color:#6c757d;">Loading suppliers...</div>';
+    
+    try {
+        const res = await fetch(SCRIPT_URL + '?action=getSuppliers');
+        const data = await res.json();
+        
+        if (!data.success) {
+            container.innerHTML = '<div style="padding:20px; text-align:center; color:#dc3545;">❌ Failed to load suppliers: ' + (data.error || 'Unknown error') + '</div>';
+            return;
+        }
+        
+        const suppliers = data.suppliers || [];
+        if (suppliers.length === 0) {
+            container.innerHTML = '<div style="padding:20px; text-align:center; color:#6c757d;">No suppliers in database yet. Add suppliers from the Encode Quotes tab.</div>';
+            return;
+        }
+        
+        let html = '<table style="width:100%; border-collapse:collapse; font-size:13px;">';
+        html += '<thead><tr style="background:#e9ecef;">';
+        html += '<th style="padding:8px; text-align:left; border-bottom:2px solid #dee2e6;">#</th>';
+        html += '<th style="padding:8px; text-align:left; border-bottom:2px solid #dee2e6;">Company Name</th>';
+        html += '<th style="padding:8px; text-align:left; border-bottom:2px solid #dee2e6;">Address</th>';
+        html += '<th style="padding:8px; text-align:left; border-bottom:2px solid #dee2e6;">PhilGEPS</th>';
+        html += '<th style="padding:8px; text-align:left; border-bottom:2px solid #dee2e6;">TIN</th>';
+        html += '<th style="padding:8px; text-align:left; border-bottom:2px solid #dee2e6;">Contact</th>';
+        html += '<th style="padding:8px; text-align:left; border-bottom:2px solid #dee2e6;">Email</th>';
+        html += '<th style="padding:8px; text-align:left; border-bottom:2px solid #dee2e6;">Signatory</th>';
+        html += '<th style="padding:8px; text-align:left; border-bottom:2px solid #dee2e6;">Designation</th>';
+        html += '</tr></thead><tbody>';
+        
+        suppliers.forEach((s, idx) => {
+            html += '<tr style="border-bottom:1px solid #e9ecef;">';
+            html += '<td style="padding:6px;">' + (idx + 1) + '</td>';
+            html += '<td style="padding:6px; font-weight:600;">' + escapeHtml(s.name) + '</td>';
+            html += '<td style="padding:6px;">' + escapeHtml(s.address) + '</td>';
+            html += '<td style="padding:6px;">' + escapeHtml(s.philgeps) + '</td>';
+            html += '<td style="padding:6px;">' + escapeHtml(s.tin) + '</td>';
+            html += '<td style="padding:6px;">' + escapeHtml(s.contact) + '</td>';
+            html += '<td style="padding:6px;">' + escapeHtml(s.email) + '</td>';
+            html += '<td style="padding:6px;">' + escapeHtml(s.signatory) + '</td>';
+            html += '<td style="padding:6px;">' + escapeHtml(s.designation) + '</td>';
+            html += '</tr>';
+        });
+        
+        html += '</tbody></table>';
+        container.innerHTML = html;
+        
+    } catch (err) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; color:#dc3545;">❌ Error: ' + err.message + '</div>';
+    }
+}
+
+// ============================================
+// STEP 1: CREATE SURVEY
 // ============================================
 document.getElementById('msDate').value = new Date().toISOString().split('T')[0];
 
@@ -366,8 +610,6 @@ function generateMSNumber() {
     return `MS-${y}${m}${day}-${rnd}`;
 }
 document.getElementById('msNumber').value = generateMSNumber();
-
-let lastSurvey = null;
 
 function addDraftRow(stockNo = '', quantity = 1, unit = '', description = '', unitCost = 0, isHeader = false) {
     const container = document.getElementById('draftItems');
@@ -604,9 +846,6 @@ function printLastSurvey() {
 // ============================================
 // STEP 2: EDIT SURVEY
 // ============================================
-let editSurveyData = null;
-let editOriginalItems = [];
-
 function showEditStatus(msg, type) {
     const el = document.getElementById('editStatus');
     el.textContent = msg;
@@ -661,7 +900,6 @@ async function fetchForEdit(msNumber) {
         }
 
         editSurveyData = data;
-        editOriginalItems = JSON.parse(JSON.stringify(data.items));
 
         const summary = document.getElementById('editSummary');
         summary.innerHTML = `
@@ -811,8 +1049,6 @@ async function toggleBrowseEdit() {
 // ============================================
 // STEP 3: ENCODE QUOTES
 // ============================================
-let currentSurvey = null;
-
 function statusPill(status) {
     return status === 'Quoted'
         ? '<span class="status-pill quoted">Quoted</span>'
@@ -881,6 +1117,7 @@ async function fetchForEncode(msNumber) {
             itemsContainer.appendChild(row);
         });
 
+        // Load supplier data into fields
         const suppliers = data.suppliers || [{}, {}, {}];
         ['1','2','3'].forEach((n, idx) => {
             const s = suppliers[idx] || {};
