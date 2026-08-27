@@ -251,54 +251,59 @@
             </div>
 
             <div class="form-section supplier-block">
-                <h3>Supplier 1</h3>
-                <div class="supplier-select-row">
-                    <select id="s1Select" onchange="loadSupplier(1, this.value)"><option value="">-- Select or type below --</option></select>
-                    <button type="button" class="btn btn-info btn-sm" onclick="saveSupplier(1)">💾 Save to DB</button>
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="refreshSuppliers()">🔄 Refresh</button>
-                </div>
-                <div class="form-group"><label>Company Name:</label><input type="text" id="s1Name" required></div>
-                <div class="form-group"><label>Business Address:</label><input type="text" id="s1Address"></div>
-                <div class="form-group"><label>PhilGEPS Reg. No.:</label><input type="text" id="s1Philgeps"></div>
-                <div class="form-group"><label>TIN:</label><input type="text" id="s1Tin"></div>
-                <div class="form-group"><label>Telephone:</label><input type="text" id="s1Contact"></div>
-                <div class="form-group"><label>Email:</label><input type="email" id="s1Email"></div>
-                <div class="form-group"><label>Signatory Name:</label><input type="text" id="s1Signatory"></div>
-                <div class="form-group"><label>Designation:</label><input type="text" id="s1Designation"></div>
-            </div>
+    <h3>Supplier 1</h3>
+    <div class="supplier-select-row">
+        <select id="s1Select" onchange="loadSupplier(1, this.value)">
+            <option value="">-- Select from Database --</option>
+        </select>
+        <button type="button" class="btn btn-info btn-sm" onclick="saveSupplier(1)">💾 Save to DB</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="refreshSuppliers()">🔄 Refresh</button>
+    </div>
+    <div class="form-group"><label>Company Name:</label><input type="text" id="s1Name" required></div>
+    <div class="form-group"><label>Business Address:</label><input type="text" id="s1Address"></div>
+    <div class="form-group"><label>PhilGEPS Reg. No.:</label><input type="text" id="s1Philgeps"></div>
+    <div class="form-group"><label>TIN:</label><input type="text" id="s1Tin"></div>
+    <div class="form-group"><label>Telephone:</label><input type="text" id="s1Contact"></div>
+    <div class="form-group"><label>Email:</label><input type="email" id="s1Email"></div>
+    <div class="form-group"><label>Signatory Name:</label><input type="text" id="s1Signatory"></div>
+    <div class="form-group"><label>Designation:</label><input type="text" id="s1Designation"></div>
+</div>
 
-            <div class="form-section supplier-block">
-                <h3>Supplier 2</h3>
-                <div class="supplier-select-row">
-                    <select id="s2Select" onchange="loadSupplier(2, this.value)"><option value="">-- Select or type below --</option></select>
-                    <button type="button" class="btn btn-info btn-sm" onclick="saveSupplier(2)">💾 Save to DB</button>
-                </div>
-                <div class="form-group"><label>Company Name:</label><input type="text" id="s2Name" required></div>
-                <div class="form-group"><label>Business Address:</label><input type="text" id="s2Address"></div>
-                <div class="form-group"><label>PhilGEPS Reg. No.:</label><input type="text" id="s2Philgeps"></div>
-                <div class="form-group"><label>TIN:</label><input type="text" id="s2Tin"></div>
-                <div class="form-group"><label>Telephone:</label><input type="text" id="s2Contact"></div>
-                <div class="form-group"><label>Email:</label><input type="email" id="s2Email"></div>
-                <div class="form-group"><label>Signatory Name:</label><input type="text" id="s2Signatory"></div>
-                <div class="form-group"><label>Designation:</label><input type="text" id="s2Designation"></div>
-            </div>
+<div class="form-section supplier-block">
+    <h3>Supplier 2</h3>
+    <div class="supplier-select-row">
+        <select id="s2Select" onchange="loadSupplier(2, this.value)">
+            <option value="">-- Select from Database --</option>
+        </select>
+        <button type="button" class="btn btn-info btn-sm" onclick="saveSupplier(2)">💾 Save to DB</button>
+    </div>
+    <div class="form-group"><label>Company Name:</label><input type="text" id="s2Name" required></div>
+    <div class="form-group"><label>Business Address:</label><input type="text" id="s2Address"></div>
+    <div class="form-group"><label>PhilGEPS Reg. No.:</label><input type="text" id="s2Philgeps"></div>
+    <div class="form-group"><label>TIN:</label><input type="text" id="s2Tin"></div>
+    <div class="form-group"><label>Telephone:</label><input type="text" id="s2Contact"></div>
+    <div class="form-group"><label>Email:</label><input type="email" id="s2Email"></div>
+    <div class="form-group"><label>Signatory Name:</label><input type="text" id="s2Signatory"></div>
+    <div class="form-group"><label>Designation:</label><input type="text" id="s2Designation"></div>
+</div>
 
-            <div class="form-section supplier-block">
-                <h3>Supplier 3</h3>
-                <div class="supplier-select-row">
-                    <select id="s3Select" onchange="loadSupplier(3, this.value)"><option value="">-- Select or type below --</option></select>
-                    <button type="button" class="btn btn-info btn-sm" onclick="saveSupplier(3)">💾 Save to DB</button>
-                </div>
-                <div class="form-group"><label>Company Name:</label><input type="text" id="s3Name" required></div>
-                <div class="form-group"><label>Business Address:</label><input type="text" id="s3Address"></div>
-                <div class="form-group"><label>PhilGEPS Reg. No.:</label><input type="text" id="s3Philgeps"></div>
-                <div class="form-group"><label>TIN:</label><input type="text" id="s3Tin"></div>
-                <div class="form-group"><label>Telephone:</label><input type="text" id="s3Contact"></div>
-                <div class="form-group"><label>Email:</label><input type="email" id="s3Email"></div>
-                <div class="form-group"><label>Signatory Name:</label><input type="text" id="s3Signatory"></div>
-                <div class="form-group"><label>Designation:</label><input type="text" id="s3Designation"></div>
-            </div>
-
+<div class="form-section supplier-block">
+    <h3>Supplier 3</h3>
+    <div class="supplier-select-row">
+        <select id="s3Select" onchange="loadSupplier(3, this.value)">
+            <option value="">-- Select from Database --</option>
+        </select>
+        <button type="button" class="btn btn-info btn-sm" onclick="saveSupplier(3)">💾 Save to DB</button>
+    </div>
+    <div class="form-group"><label>Company Name:</label><input type="text" id="s3Name" required></div>
+    <div class="form-group"><label>Business Address:</label><input type="text" id="s3Address"></div>
+    <div class="form-group"><label>PhilGEPS Reg. No.:</label><input type="text" id="s3Philgeps"></div>
+    <div class="form-group"><label>TIN:</label><input type="text" id="s3Tin"></div>
+    <div class="form-group"><label>Telephone:</label><input type="text" id="s3Contact"></div>
+    <div class="form-group"><label>Email:</label><input type="email" id="s3Email"></div>
+    <div class="form-group"><label>Signatory Name:</label><input type="text" id="s3Signatory"></div>
+    <div class="form-group"><label>Designation:</label><input type="text" id="s3Designation"></div>
+</div>
             <div class="button-group">
                 <button type="button" class="btn btn-accent" id="encodeBtn" onclick="submitEncode()">💾 Save Supplier Quotes</button>
             </div>
