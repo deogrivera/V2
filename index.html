@@ -17,7 +17,7 @@
     .conn-bar span.msg { flex:1; }
 
     .subtab-nav { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
-    .subtab-btn { flex:1; min-width:120px; padding:12px; background:#fff; border:2px solid #d97706; color:#d97706; cursor:pointer; font-size:13px; font-weight:700; border-radius:6px; }
+    .subtab-btn { flex:1; min-width:100px; padding:12px; background:#fff; border:2px solid #d97706; color:#d97706; cursor:pointer; font-size:13px; font-weight:700; border-radius:6px; }
     .subtab-btn.active { background:#d97706; color:#fff; }
     .subtab-view { display:none; }
     .subtab-view.active { display:block; }
@@ -33,14 +33,16 @@
     .form-group textarea { min-height:60px; resize:vertical; }
     .form-group .help-text { font-size:11px; color:#6c757d; margin-left:180px; margin-top:4px; width:100%; }
 
-    .row-header, .draft-row, .encode-row { display:grid; gap:6px; margin-bottom:8px; align-items:center; }
+    .row-header, .draft-row, .encode-row, .edit-row { display:grid; gap:6px; margin-bottom:8px; align-items:center; }
     .draft-row, .row-header.draft { grid-template-columns:60px 60px 80px 1fr 60px 100px 40px; }
+    .edit-row, .row-header.edit { grid-template-columns:60px 60px 80px 1fr 60px 100px 40px; }
     .encode-row, .row-header.encode { grid-template-columns:60px 60px 70px 1fr 90px 90px 90px 90px; }
     .row-header { font-weight:700; background:#e9ecef; padding:8px 4px; text-align:center; border-radius:4px; font-size:11px; color:#1a3c6e; }
-    .draft-row input, .encode-row input { padding:6px 8px; border:1px solid #ccc; border-radius:4px; font-size:12px; width:100%; }
-    .draft-row input[type="checkbox"] { width:20px; margin:0 auto; }
-    .draft-row .is-header-row { background:#f8f9fa; }
+    .draft-row input, .encode-row input, .edit-row input { padding:6px 8px; border:1px solid #ccc; border-radius:4px; font-size:12px; width:100%; }
+    .draft-row input[type="checkbox"], .edit-row input[type="checkbox"] { width:20px; margin:0 auto; }
+    .draft-row .is-header-row, .edit-row .is-header-row { background:#f8f9fa; }
     .encode-row input.avg { background:#eef6ee; font-weight:700; color:#1a6e3c; }
+    .edit-row .existing-item { background:#f0f8ff; }
 
     .btn { background:#1a3c6e; color:#fff; padding:10px 20px; border:none; border-radius:5px; cursor:pointer; font-size:14px; font-weight:600; margin-right:10px; }
     .btn:hover { background:#2a5a8e; }
@@ -49,6 +51,7 @@
     .btn-accent { background:#d97706; } .btn-accent:hover { background:#b85f04; }
     .btn-print { background:#17a2b8; } .btn-print:hover { background:#128294; }
     .btn-secondary { background:#6c757d; } .btn-secondary:hover { background:#5a6268; }
+    .btn-warning { background:#ffc107; color:#212529; } .btn-warning:hover { background:#e0a800; }
     .btn:disabled { opacity:0.6; cursor:not-allowed; }
     .btn-small { padding:6px 12px; font-size:12px; }
 
@@ -72,9 +75,12 @@
     .status-pill { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; margin-left:6px; }
     .status-pill.pending { background:#fff3cd; color:#856404; }
     .status-pill.quoted { background:#d4edda; color:#155724; }
+    .status-pill.editing { background:#cce5ff; color:#004085; }
 
     .summary-box { background:#eef2f7; border-radius:6px; padding:12px 15px; margin-bottom:15px; font-size:13px; display:none; }
     .summary-box.visible { display:block; }
+
+    .edit-badge { display:inline-block; background:#d97706; color:#fff; padding:2px 10px; border-radius:12px; font-size:10px; margin-left:8px; }
 
     #printArea { display:none; }
     @media print {
@@ -108,7 +114,7 @@
 
     @media (max-width:768px) {
         .form-group label { width:100%; margin-bottom:5px; }
-        .draft-row, .row-header.draft, .encode-row, .row-header.encode { grid-template-columns:1fr 1fr; }
+        .draft-row, .row-header.draft, .edit-row, .row-header.edit, .encode-row, .row-header.encode { grid-template-columns:1fr 1fr; }
         .row-header { display:none; }
         .container { padding:15px; }
     }
@@ -125,8 +131,9 @@
     </div>
 
     <div class="subtab-nav">
-        <button type="button" class="subtab-btn active" id="tabBtn-create" onclick="switchSubtab('create')">📝 Step 1 — Create Survey</button>
-        <button type="button" class="subtab-btn" id="tabBtn-encode" onclick="switchSubtab('encode')">📥 Step 2 — Encode Quotes</button>
+        <button type="button" class="subtab-btn active" id="tabBtn-create" onclick="switchSubtab('create')">📝 Create Survey</button>
+        <button type="button" class="subtab-btn" id="tabBtn-edit" onclick="switchSubtab('edit')">✏️ Edit Survey</button>
+        <button type="button" class="subtab-btn" id="tabBtn-encode" onclick="switchSubtab('encode')">📥 Encode Quotes</button>
     </div>
 
     <!-- ============ STEP 1: CREATE ============ -->
@@ -171,7 +178,46 @@
         <div id="createStatus" class="status-message"></div>
     </div>
 
-    <!-- ============ STEP 2: ENCODE QUOTES ============ -->
+    <!-- ============ STEP 2: EDIT ============ -->
+    <div id="view-edit" class="subtab-view">
+        <div class="ms-lookup">
+            <h4>✏️ Load a Market Survey to Edit <span class="edit-badge">Add/Delete Items</span></h4>
+            <div class="ms-lookup-row">
+                <input type="text" id="editSearch" placeholder="e.g., MS-20260827-1234">
+                <button type="button" class="btn btn-accent btn-small" onclick="loadForEdit()">Load for Editing</button>
+                <button type="button" class="btn btn-secondary btn-small" onclick="toggleBrowseEdit()">📂 Browse Recent</button>
+            </div>
+            <div id="browseListEdit" class="browse-list"></div>
+        </div>
+
+        <div id="editSummary" class="summary-box"></div>
+
+        <div id="editBody" style="display:none;">
+            <div class="form-section">
+                <h3>Edit Items <span style="font-size:12px; font-weight:normal; color:#6c757d;">— Add, delete, or modify items below</span></h3>
+                <div class="row-header edit">
+                    <span>Stock No.</span><span>Qty</span><span>Unit</span><span>Item Description</span>
+                    <span style="font-size:9px;">Section<br>Header</span>
+                    <span>Unit Cost</span>
+                    <span></span>
+                </div>
+                <div id="editItems"></div>
+                <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+                    <button type="button" class="btn btn-success btn-small" onclick="addEditRow()">+ Add Item</button>
+                    <button type="button" class="btn btn-secondary btn-small" onclick="addEditSectionHeader()">📋 Add Section Header</button>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="btn btn-accent" id="editBtn" onclick="submitEdit()">💾 Save Changes</button>
+                <button type="button" class="btn btn-danger" onclick="discardEdit()">🗑️ Discard Changes</button>
+            </div>
+        </div>
+
+        <div id="editStatus" class="status-message"></div>
+    </div>
+
+    <!-- ============ STEP 3: ENCODE QUOTES ============ -->
     <div id="view-encode" class="subtab-view">
         <div class="ms-lookup">
             <h4>📥 Load a Market Survey to encode its 3 returned quotes</h4>
@@ -299,8 +345,10 @@ window.addEventListener('DOMContentLoaded', function() {
 // ============================================
 function switchSubtab(tab) {
     document.getElementById('view-create').classList.toggle('active', tab === 'create');
+    document.getElementById('view-edit').classList.toggle('active', tab === 'edit');
     document.getElementById('view-encode').classList.toggle('active', tab === 'encode');
     document.getElementById('tabBtn-create').classList.toggle('active', tab === 'create');
+    document.getElementById('tabBtn-edit').classList.toggle('active', tab === 'edit');
     document.getElementById('tabBtn-encode').classList.toggle('active', tab === 'encode');
 }
 
@@ -333,7 +381,7 @@ function addDraftRow(stockNo = '', quantity = 1, unit = '', description = '', un
         <input type="text" class="d-desc" value="${escapeHtml(description)}" placeholder="${isHeader ? 'Section header text...' : 'Item description'}" required>
         <input type="checkbox" class="d-is-header" ${isHeader ? 'checked' : ''} onchange="toggleHeaderRow(this)">
         <input type="number" class="d-cost" value="${unitCost}" min="0" step="0.01" placeholder="Cost">
-        <button type="button" class="remove-btn" onclick="this.closest('.draft-row').remove()">✕</button>
+        <button type="button" class="btn btn-danger btn-small" onclick="this.closest('.draft-row').remove()">✕</button>
     `;
     container.appendChild(row);
 }
@@ -356,7 +404,7 @@ function resetCreateForm() {
     document.getElementById('msEndUser').value = '';
     document.getElementById('msPurpose').value = '';
     document.getElementById('draftItems').innerHTML = '';
-    addDraftRow('1', 1, '', '', 0, false);
+    addDraftRow('1', 1, 'pcs.', 'Enter item description here...', 0, false);
     document.getElementById('createStatus').style.display = 'none';
     document.getElementById('printBtn').disabled = true;
     lastSurvey = null;
@@ -461,21 +509,18 @@ const MS_INTRO = "In determining the technical specifications of the goods it wi
 
 function buildPrintCopy(surveyData, copyNum, total) {
     let rows = '';
-    let itemCounter = 0;
     
     surveyData.items.forEach(it => {
         const isHeader = it.isHeader || false;
-        const cellCount = 7; // Stock No, Qty, Unit, Description, Offer, Unit Price, Total Amount
+        const cellCount = 7;
         
         if (isHeader) {
-            // Section header spans all columns
             rows += `<tr class="section-header">
                 <td colspan="${cellCount}" style="font-weight:bold; font-size:12px; padding:6px 10px; background:#f8f9fa;">
                     ${escapeHtml(it.description)}
                 </td>
             </tr>`;
         } else {
-            itemCounter++;
             const totalCost = (parseFloat(it.quantity) || 0) * (parseFloat(it.unitCost) || 0);
             rows += `<tr>
                 <td style="text-align:center;">${escapeHtml(it.stockNo || '')}</td>
@@ -557,7 +602,214 @@ function printLastSurvey() {
 }
 
 // ============================================
-// STEP 2: ENCODE QUOTES
+// STEP 2: EDIT SURVEY
+// ============================================
+let editSurveyData = null;
+let editOriginalItems = [];
+
+function showEditStatus(msg, type) {
+    const el = document.getElementById('editStatus');
+    el.textContent = msg;
+    el.className = 'status-message ' + type;
+}
+
+function addEditRow(stockNo = '', quantity = 1, unit = '', description = '', unitCost = 0, isHeader = false) {
+    const container = document.getElementById('editItems');
+    const row = document.createElement('div');
+    row.className = 'edit-row';
+    if (isHeader) row.classList.add('is-header-row');
+    row.innerHTML = `
+        <input type="text" class="e-stock" value="${escapeHtml(stockNo)}" placeholder="Stock No.">
+        <input type="number" class="e-qty" value="${quantity}" min="0" step="0.01">
+        <input type="text" class="e-unit" value="${escapeHtml(unit)}" placeholder="Unit">
+        <input type="text" class="e-desc" value="${escapeHtml(description)}" placeholder="${isHeader ? 'Section header text...' : 'Item description'}" required>
+        <input type="checkbox" class="e-is-header" ${isHeader ? 'checked' : ''} onchange="toggleEditHeaderRow(this)">
+        <input type="number" class="e-cost" value="${unitCost}" min="0" step="0.01" placeholder="Cost">
+        <button type="button" class="btn btn-danger btn-small" onclick="this.closest('.edit-row').remove()">✕</button>
+    `;
+    container.appendChild(row);
+}
+
+function addEditSectionHeader() {
+    addEditRow('', 0, '', 'Enter section header here...', 0, true);
+}
+
+function toggleEditHeaderRow(checkbox) {
+    const row = checkbox.closest('.edit-row');
+    row.classList.toggle('is-header-row', checkbox.checked);
+    const desc = row.querySelector('.e-desc');
+    desc.placeholder = checkbox.checked ? 'Section header text...' : 'Item description';
+}
+
+async function loadForEdit() {
+    const msNumber = document.getElementById('editSearch').value.trim();
+    if (!msNumber) { showEditStatus('Enter a Market Survey number.', 'error'); return; }
+    await fetchForEdit(msNumber);
+}
+
+async function fetchForEdit(msNumber) {
+    showEditStatus('Loading ' + msNumber + ' for editing...', 'info');
+    try {
+        const res = await fetch(SCRIPT_URL + '?action=getSurvey&msNumber=' + encodeURIComponent(msNumber));
+        const data = await res.json();
+
+        if (!data.success) {
+            showEditStatus('❌ ' + (data.error || 'Not found'), 'error');
+            document.getElementById('editBody').style.display = 'none';
+            document.getElementById('editSummary').classList.remove('visible');
+            return;
+        }
+
+        editSurveyData = data;
+        editOriginalItems = JSON.parse(JSON.stringify(data.items));
+
+        const summary = document.getElementById('editSummary');
+        summary.innerHTML = `
+            <strong>${escapeHtml(data.msNumber)}</strong> ${statusPill(data.status)}<br>
+            ${escapeHtml(data.dateAccomplished)} · ${escapeHtml(data.endUser)}<br>
+            <strong>Items:</strong> ${data.items.length} 
+            <span style="font-size:11px; color:#6c757d;">(${data.items.filter(i => !i.isHeader).length} actual items)</span>
+        `;
+        summary.classList.add('visible');
+
+        const container = document.getElementById('editItems');
+        container.innerHTML = '';
+        data.items.forEach((it) => {
+            const row = document.createElement('div');
+            row.className = 'edit-row existing-item';
+            if (it.isHeader) row.classList.add('is-header-row');
+            row.innerHTML = `
+                <input type="text" class="e-stock" value="${escapeHtml(it.stockNo || '')}" placeholder="Stock No.">
+                <input type="number" class="e-qty" value="${escapeHtml(it.quantity)}" min="0" step="0.01">
+                <input type="text" class="e-unit" value="${escapeHtml(it.unit)}" placeholder="Unit">
+                <input type="text" class="e-desc" value="${escapeHtml(it.description)}" placeholder="${it.isHeader ? 'Section header text...' : 'Item description'}" required>
+                <input type="checkbox" class="e-is-header" ${it.isHeader ? 'checked' : ''} onchange="toggleEditHeaderRow(this)">
+                <input type="number" class="e-cost" value="${escapeHtml(it.unitCost || 0)}" min="0" step="0.01" placeholder="Cost">
+                <button type="button" class="btn btn-danger btn-small" onclick="this.closest('.edit-row').remove()">✕</button>
+            `;
+            container.appendChild(row);
+        });
+
+        document.getElementById('editBody').style.display = 'block';
+        showEditStatus(`✅ Loaded ${data.items.length} item(s) for editing. Add, delete, or modify items below.`, 'success');
+        document.getElementById('browseListEdit').classList.remove('visible');
+
+    } catch (err) {
+        showEditStatus('❌ ' + err.message, 'error');
+    }
+}
+
+async function submitEdit() {
+    if (!editSurveyData) { alert('Load a survey first.'); return; }
+
+    const items = [];
+    let hasValidItem = false;
+
+    document.querySelectorAll('#editItems .edit-row').forEach(row => {
+        const desc = row.querySelector('.e-desc').value.trim();
+        const isHeader = row.querySelector('.e-is-header').checked;
+        const qty = parseFloat(row.querySelector('.e-qty').value) || 0;
+        const cost = parseFloat(row.querySelector('.e-cost').value) || 0;
+        
+        if (desc) {
+            const item = {
+                stockNo: row.querySelector('.e-stock').value.trim(),
+                quantity: qty,
+                unit: row.querySelector('.e-unit').value.trim(),
+                description: desc,
+                unitCost: cost,
+                isHeader: isHeader
+            };
+            items.push(item);
+            if (!isHeader) hasValidItem = true;
+        }
+    });
+
+    if (items.length === 0) {
+        showEditStatus('Add at least one item or section header.', 'error');
+        return;
+    }
+
+    if (!hasValidItem) {
+        showEditStatus('Add at least one actual item (not just section headers).', 'error');
+        return;
+    }
+
+    const payload = {
+        action: 'updateMarketSurveyItems',
+        msNumber: editSurveyData.msNumber,
+        items: items
+    };
+
+    const btn = document.getElementById('editBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving Changes...';
+    showEditStatus('Updating items in Google Sheets...', 'info');
+
+    try {
+        const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+
+        if (result.success) {
+            showEditStatus(`✅ Updated! ${result.itemsUpdated} items updated in ${result.msNumber}.`, 'success');
+            await fetchForEdit(editSurveyData.msNumber);
+        } else {
+            showEditStatus('❌ ' + (result.error || 'Unknown error'), 'error');
+        }
+    } catch (err) {
+        showEditStatus('❌ ' + err.message, 'error');
+    }
+
+    btn.disabled = false;
+    btn.textContent = '💾 Save Changes';
+}
+
+function discardEdit() {
+    if (!confirm('Discard all changes and reload the original data?')) return;
+    if (editSurveyData) {
+        fetchForEdit(editSurveyData.msNumber);
+    } else {
+        document.getElementById('editBody').style.display = 'none';
+        document.getElementById('editSummary').classList.remove('visible');
+        document.getElementById('editStatus').style.display = 'none';
+    }
+}
+
+async function toggleBrowseEdit() {
+    const list = document.getElementById('browseListEdit');
+    if (list.classList.contains('visible')) { list.classList.remove('visible'); return; }
+    list.innerHTML = '<div class="browse-item">Loading...</div>';
+    list.classList.add('visible');
+    try {
+        const res = await fetch(SCRIPT_URL + '?action=listSurveys');
+        const data = await res.json();
+        if (!data.success || !data.surveys || data.surveys.length === 0) {
+            list.innerHTML = '<div class="browse-item">No Market Surveys saved yet.</div>';
+            return;
+        }
+        list.innerHTML = '';
+        data.surveys.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'browse-item';
+            const statusLabel = s.status === 'Quoted' 
+                ? '<span class="status-pill quoted">Quoted</span>' 
+                : '<span class="status-pill pending">Pending Quotes</span>';
+            div.innerHTML = `<div><strong>${escapeHtml(s.msNumber)}</strong> ${statusLabel}</div>
+                <div style="color:#6c757d;font-size:12px;">${escapeHtml(s.dateAccomplished)} · ${escapeHtml(s.endUser)} — ${escapeHtml((s.purpose||'').substring(0,60))}</div>`;
+            div.onclick = () => { document.getElementById('editSearch').value = s.msNumber; fetchForEdit(s.msNumber); };
+            list.appendChild(div);
+        });
+    } catch (err) {
+        list.innerHTML = '<div class="browse-item">❌ ' + err.message + '</div>';
+    }
+}
+
+// ============================================
+// STEP 3: ENCODE QUOTES
 // ============================================
 let currentSurvey = null;
 
@@ -609,7 +861,7 @@ async function fetchForEncode(msNumber) {
                     <input type="text" value="${escapeHtml(it.quantity)}" readonly style="background:#e9ecef;">
                     <input type="text" value="${escapeHtml(it.unit)}" readonly style="background:#e9ecef;">
                     <input type="text" value="${escapeHtml(it.description)}" readonly style="background:#f8f9fa; font-weight:bold;" class="e-desc">
-                    <span style="font-size:10px; color:#6c757d; text-align:center;">(section header)</span>
+                    <span style="font-size:10px; color:#6c757d; text-align:center;">(header)</span>
                     <span style="font-size:10px; color:#6c757d; text-align:center;">—</span>
                     <span style="font-size:10px; color:#6c757d; text-align:center;">—</span>
                     <span style="font-size:10px; color:#6c757d; text-align:center;">—</span>
@@ -676,7 +928,7 @@ async function toggleBrowse() {
             const div = document.createElement('div');
             div.className = 'browse-item';
             div.innerHTML = `<div><strong>${escapeHtml(s.msNumber)}</strong> ${statusPill(s.status)}</div><div style="color:#6c757d;font-size:12px;">${escapeHtml(s.dateAccomplished)} · ${escapeHtml(s.endUser)} — ${escapeHtml((s.purpose||'').substring(0,60))}</div>`;
-            div.onclick = () => fetchForEncode(s.msNumber);
+            div.onclick = () => { document.getElementById('encodeSearch').value = s.msNumber; fetchForEncode(s.msNumber); };
             list.appendChild(div);
         });
     } catch (err) {
@@ -698,7 +950,6 @@ async function submitEncode() {
 
     const items = [];
     document.querySelectorAll('#encodeItems .encode-row').forEach(row => {
-        // Skip section headers (they have no price inputs)
         const p1Input = row.querySelector('.e-p1');
         if (p1Input) {
             items.push({
