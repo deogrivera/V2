@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Market Survey</title>
+<title>Market Survey System</title>
 <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:#f0f4f8; padding:20px; }
-    .container { max-width:1000px; margin:0 auto; background:#fff; padding:30px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1); }
+    .container { max-width:1100px; margin:0 auto; background:#fff; padding:30px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1); }
     h1 { color:#1a3c6e; border-bottom:3px solid #1a3c6e; padding-bottom:10px; margin-bottom:20px; text-align:center; }
 
     .conn-bar { display:flex; align-items:center; gap:10px; background:#f8f9fa; border:1px solid #dee2e6; border-radius:6px; padding:10px 15px; margin-bottom:20px; font-size:13px; }
@@ -16,8 +16,8 @@
     .conn-bar .dot.bad { background:#dc3545; }
     .conn-bar span.msg { flex:1; }
 
-    .subtab-nav { display:flex; gap:6px; margin-bottom:20px; }
-    .subtab-btn { flex:1; padding:12px; background:#fff; border:2px solid #d97706; color:#d97706; cursor:pointer; font-size:13px; font-weight:700; border-radius:6px; }
+    .subtab-nav { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
+    .subtab-btn { flex:1; min-width:120px; padding:12px; background:#fff; border:2px solid #d97706; color:#d97706; cursor:pointer; font-size:13px; font-weight:700; border-radius:6px; }
     .subtab-btn.active { background:#d97706; color:#fff; }
     .subtab-view { display:none; }
     .subtab-view.active { display:block; }
@@ -29,14 +29,17 @@
 
     .form-group { display:flex; flex-wrap:wrap; margin-bottom:12px; align-items:flex-start; }
     .form-group label { width:180px; font-weight:600; color:#333; font-size:14px; padding-top:8px; }
-    .form-group input, .form-group textarea { flex:1; padding:8px 12px; border:1px solid #ccc; border-radius:4px; font-size:14px; min-width:200px; }
+    .form-group input, .form-group textarea, .form-group select { flex:1; padding:8px 12px; border:1px solid #ccc; border-radius:4px; font-size:14px; min-width:200px; }
     .form-group textarea { min-height:60px; resize:vertical; }
+    .form-group .help-text { font-size:11px; color:#6c757d; margin-left:180px; margin-top:4px; width:100%; }
 
     .row-header, .draft-row, .encode-row { display:grid; gap:6px; margin-bottom:8px; align-items:center; }
-    .draft-row, .row-header.draft { grid-template-columns:70px 70px 90px 1fr 40px; }
+    .draft-row, .row-header.draft { grid-template-columns:60px 60px 80px 1fr 60px 100px 40px; }
     .encode-row, .row-header.encode { grid-template-columns:60px 60px 70px 1fr 90px 90px 90px 90px; }
     .row-header { font-weight:700; background:#e9ecef; padding:8px 4px; text-align:center; border-radius:4px; font-size:11px; color:#1a3c6e; }
     .draft-row input, .encode-row input { padding:6px 8px; border:1px solid #ccc; border-radius:4px; font-size:12px; width:100%; }
+    .draft-row input[type="checkbox"] { width:20px; margin:0 auto; }
+    .draft-row .is-header-row { background:#f8f9fa; }
     .encode-row input.avg { background:#eef6ee; font-weight:700; color:#1a6e3c; }
 
     .btn { background:#1a3c6e; color:#fff; padding:10px 20px; border:none; border-radius:5px; cursor:pointer; font-size:14px; font-weight:600; margin-right:10px; }
@@ -45,9 +48,9 @@
     .btn-danger { background:#dc3545; } .btn-danger:hover { background:#c82333; }
     .btn-accent { background:#d97706; } .btn-accent:hover { background:#b85f04; }
     .btn-print { background:#17a2b8; } .btn-print:hover { background:#128294; }
+    .btn-secondary { background:#6c757d; } .btn-secondary:hover { background:#5a6268; }
     .btn:disabled { opacity:0.6; cursor:not-allowed; }
     .btn-small { padding:6px 12px; font-size:12px; }
-    .remove-btn { background:#dc3545; color:#fff; border:none; border-radius:3px; padding:4px 8px; cursor:pointer; font-size:12px; }
 
     .button-group { margin-top:20px; text-align:center; }
 
@@ -88,6 +91,8 @@
         .print-table { width:100%; border-collapse:collapse; margin-top:12px; font-size:11px; }
         .print-table th, .print-table td { border:1px solid #000; padding:5px; }
         .print-table th { background:#eee; text-align:center; }
+        .print-table .section-header td { background:#f8f9fa; font-weight:bold; }
+        .print-table .section-header td { text-align:left; padding-left:10px; }
         .print-footer { margin-top:30px; font-size:12px; }
         .print-footer .sig-line { border-bottom:1px solid #000; height:26px; margin-bottom:2px; }
         .print-footer .field-row { display:flex; margin-top:10px; }
@@ -98,6 +103,7 @@
         .print-enduser-signature .sig-line { border-bottom:1px solid #000; width:250px; height:30px; }
         .print-enduser-signature .sig-label { font-size:11px; color:#555; text-align:center; margin-top:2px; }
         .print-enduser-signature .enduser-label { font-weight:bold; font-size:12px; }
+        .print-purpose-box { background:#f9f9f9; border-left:4px solid #1a3c6e; padding:10px 14px; margin:8px 0 14px 0; font-size:12px; line-height:1.6; white-space:pre-wrap; }
     }
 
     @media (max-width:768px) {
@@ -120,7 +126,7 @@
 
     <div class="subtab-nav">
         <button type="button" class="subtab-btn active" id="tabBtn-create" onclick="switchSubtab('create')">📝 Step 1 — Create Survey</button>
-        <button type="button" class="subtab-btn" id="tabBtn-encode" onclick="switchSubtab('encode')">📥 Step 2 — Encode Supplier Quotes</button>
+        <button type="button" class="subtab-btn" id="tabBtn-encode" onclick="switchSubtab('encode')">📥 Step 2 — Encode Quotes</button>
     </div>
 
     <!-- ============ STEP 1: CREATE ============ -->
@@ -130,16 +136,30 @@
             <div class="form-group"><label>MS No.:</label><input type="text" id="msNumber" readonly style="background:#e9ecef;"></div>
             <div class="form-group"><label>Date Accomplished:</label><input type="date" id="msDate" required></div>
             <div class="form-group"><label>End-User/Focal Person:</label><input type="text" id="msEndUser" placeholder="e.g., GSS - Motorpool" required></div>
-            <div class="form-group"><label>Purpose/Requirement:</label><textarea id="msPurpose" placeholder="What is being surveyed / procured..." required></textarea></div>
+            <div class="form-group">
+                <label>Purpose / Job Order:</label>
+                <textarea id="msPurpose" placeholder="Enter the full job order description here. This will appear above the item table in the printout." rows="4" required></textarea>
+                <div class="help-text">Include job order details, labor description, and any other information that should appear above the item list.</div>
+            </div>
         </div>
 
         <div class="form-section">
             <h3>Items</h3>
             <div class="row-header draft">
-                <span>Item No.</span><span>Qty</span><span>Unit</span><span>Item Description</span><span></span>
+                <span>Stock No.</span><span>Qty</span><span>Unit</span><span>Item Description</span>
+                <span style="font-size:9px;">Section<br>Header</span>
+                <span>Unit Cost</span>
+                <span></span>
             </div>
             <div id="draftItems"></div>
-            <button type="button" class="btn btn-success btn-small" onclick="addDraftRow()" style="margin-top:10px;">+ Add Item</button>
+            <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+                <button type="button" class="btn btn-success btn-small" onclick="addDraftRow()">+ Add Item</button>
+                <button type="button" class="btn btn-secondary btn-small" onclick="addSectionHeader()">📋 Add Section Header</button>
+            </div>
+            <div style="margin-top:6px; font-size:11px; color:#6c757d;">
+                <strong>Tip:</strong> Check "Section Header" for rows that are just labels (e.g., "Labor:", "Parts, Oil & Lubricants:"). 
+                Section headers will appear in bold in the printout.
+            </div>
         </div>
 
         <div class="button-group">
@@ -158,7 +178,7 @@
             <div class="ms-lookup-row">
                 <input type="text" id="encodeSearch" placeholder="e.g., MS-20260827-1234">
                 <button type="button" class="btn btn-accent btn-small" onclick="loadForEncode()">Load</button>
-                <button type="button" class="btn btn-small" style="background:#6c757d;" onclick="toggleBrowse()">📂 Browse Recent</button>
+                <button type="button" class="btn btn-secondary btn-small" onclick="toggleBrowse()">📂 Browse Recent</button>
             </div>
             <div id="browseList" class="browse-list"></div>
         </div>
@@ -169,7 +189,7 @@
             <div class="form-section">
                 <h3>Items &amp; Canvassed Prices</h3>
                 <div class="row-header encode">
-                    <span>Item No.</span><span>Qty</span><span>Unit</span><span>Description</span>
+                    <span>Stock No.</span><span>Qty</span><span>Unit</span><span>Description</span>
                     <span>Supplier 1 ₱</span><span>Supplier 2 ₱</span><span>Supplier 3 ₱</span><span>Average ₱</span>
                 </div>
                 <div id="encodeItems"></div>
@@ -249,19 +269,12 @@ window.testConnection = async function() {
         const res = await fetch(SCRIPT_URL, {
             method: 'GET',
             mode: 'cors',
-            headers: {
-                'Accept': 'application/json',
-            }
+            headers: { 'Accept': 'application/json' }
         });
         
-        console.log('Response status:', res.status);
-        
-        if (!res.ok) {
-            throw new Error('HTTP ' + res.status + ': ' + res.statusText);
-        }
+        if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + res.statusText);
         
         const data = await res.json();
-        console.log('Response data:', data);
         
         if (data.success && data.status === 'Online') {
             dot.className = 'dot ok';
@@ -275,9 +288,8 @@ window.testConnection = async function() {
         dot.className = 'dot bad';
         msg.textContent = '❌ ' + err.message + ' (Check console for details)';
     }
-}
+};
 
-// Run connection test on load
 window.addEventListener('DOMContentLoaded', function() {
     setTimeout(window.testConnection, 500);
 });
@@ -307,22 +319,34 @@ function generateMSNumber() {
 }
 document.getElementById('msNumber').value = generateMSNumber();
 
-let draftCount = 0;
 let lastSurvey = null;
 
-function addDraftRow(itemNo = '', quantity = 1, unit = '', description = '') {
+function addDraftRow(stockNo = '', quantity = 1, unit = '', description = '', unitCost = 0, isHeader = false) {
     const container = document.getElementById('draftItems');
     const row = document.createElement('div');
     row.className = 'draft-row';
+    if (isHeader) row.classList.add('is-header-row');
     row.innerHTML = `
-        <input type="text" class="d-no" value="${escapeHtml(itemNo)}" placeholder="1">
-        <input type="number" class="d-qty" value="${quantity}" min="0.01" step="0.01">
-        <input type="text" class="d-unit" value="${escapeHtml(unit)}" placeholder="pc">
-        <input type="text" class="d-desc" value="${escapeHtml(description)}" placeholder="Item description" required>
+        <input type="text" class="d-stock" value="${escapeHtml(stockNo)}" placeholder="Stock No.">
+        <input type="number" class="d-qty" value="${quantity}" min="0" step="0.01">
+        <input type="text" class="d-unit" value="${escapeHtml(unit)}" placeholder="Unit">
+        <input type="text" class="d-desc" value="${escapeHtml(description)}" placeholder="${isHeader ? 'Section header text...' : 'Item description'}" required>
+        <input type="checkbox" class="d-is-header" ${isHeader ? 'checked' : ''} onchange="toggleHeaderRow(this)">
+        <input type="number" class="d-cost" value="${unitCost}" min="0" step="0.01" placeholder="Cost">
         <button type="button" class="remove-btn" onclick="this.closest('.draft-row').remove()">✕</button>
     `;
     container.appendChild(row);
-    draftCount++;
+}
+
+function addSectionHeader() {
+    addDraftRow('', 0, '', 'Enter section header here...', 0, true);
+}
+
+function toggleHeaderRow(checkbox) {
+    const row = checkbox.closest('.draft-row');
+    row.classList.toggle('is-header-row', checkbox.checked);
+    const desc = row.querySelector('.d-desc');
+    desc.placeholder = checkbox.checked ? 'Section header text...' : 'Item description';
 }
 
 function resetCreateForm() {
@@ -332,7 +356,7 @@ function resetCreateForm() {
     document.getElementById('msEndUser').value = '';
     document.getElementById('msPurpose').value = '';
     document.getElementById('draftItems').innerHTML = '';
-    addDraftRow('1', 1, '', '');
+    addDraftRow('1', 1, '', '', 0, false);
     document.getElementById('createStatus').style.display = 'none';
     document.getElementById('printBtn').disabled = true;
     lastSurvey = null;
@@ -356,21 +380,33 @@ async function submitCreate() {
     }
 
     const items = [];
+    let hasValidItem = false;
     document.querySelectorAll('#draftItems .draft-row').forEach(row => {
         const desc = row.querySelector('.d-desc').value.trim();
+        const isHeader = row.querySelector('.d-is-header').checked;
         const qty = parseFloat(row.querySelector('.d-qty').value) || 0;
-        if (desc && qty > 0) {
+        const cost = parseFloat(row.querySelector('.d-cost').value) || 0;
+        
+        if (desc) {
             items.push({
-                itemNo: row.querySelector('.d-no').value.trim(),
+                stockNo: row.querySelector('.d-stock').value.trim(),
                 quantity: qty,
                 unit: row.querySelector('.d-unit').value.trim(),
-                description: desc
+                description: desc,
+                unitCost: cost,
+                isHeader: isHeader
             });
+            if (!isHeader) hasValidItem = true;
         }
     });
 
     if (items.length === 0) {
-        showCreateStatus('Add at least one item with a description and quantity.', 'error');
+        showCreateStatus('Add at least one item or section header.', 'error');
+        return;
+    }
+
+    if (!hasValidItem) {
+        showCreateStatus('Add at least one actual item (not just section headers).', 'error');
         return;
     }
 
@@ -396,7 +432,6 @@ async function submitCreate() {
             body: JSON.stringify(payload)
         });
         const result = await res.json();
-        console.log('createMarketSurvey response:', result);
 
         if (result.success) {
             showCreateStatus(`✅ Saved! ${result.itemsAdded} item(s) added to ${result.msNumber}. You can now print it.`, 'success');
@@ -405,7 +440,7 @@ async function submitCreate() {
                 dateAccomplished: msDate, 
                 endUser: msEndUser, 
                 purpose: msPurpose,
-                items 
+                items: items 
             };
             document.getElementById('printBtn').disabled = false;
         } else {
@@ -426,14 +461,32 @@ const MS_INTRO = "In determining the technical specifications of the goods it wi
 
 function buildPrintCopy(surveyData, copyNum, total) {
     let rows = '';
+    let itemCounter = 0;
+    
     surveyData.items.forEach(it => {
-        rows += `<tr>
-            <td style="text-align:center;">${escapeHtml(it.itemNo)}</td>
-            <td style="text-align:center;">${escapeHtml(it.quantity)}</td>
-            <td style="text-align:center;">${escapeHtml(it.unit)}</td>
-            <td>${escapeHtml(it.description)}</td>
-            <td></td><td></td><td></td>
-        </tr>`;
+        const isHeader = it.isHeader || false;
+        const cellCount = 7; // Stock No, Qty, Unit, Description, Offer, Unit Price, Total Amount
+        
+        if (isHeader) {
+            // Section header spans all columns
+            rows += `<tr class="section-header">
+                <td colspan="${cellCount}" style="font-weight:bold; font-size:12px; padding:6px 10px; background:#f8f9fa;">
+                    ${escapeHtml(it.description)}
+                </td>
+            </tr>`;
+        } else {
+            itemCounter++;
+            const totalCost = (parseFloat(it.quantity) || 0) * (parseFloat(it.unitCost) || 0);
+            rows += `<tr>
+                <td style="text-align:center;">${escapeHtml(it.stockNo || '')}</td>
+                <td style="text-align:center;">${escapeHtml(it.quantity)}</td>
+                <td style="text-align:center;">${escapeHtml(it.unit)}</td>
+                <td>${escapeHtml(it.description)}</td>
+                <td></td>
+                <td style="text-align:right;">${totalCost > 0 ? parseFloat(it.unitCost).toFixed(2) : ''}</td>
+                <td style="text-align:right;">${totalCost > 0 ? totalCost.toFixed(2) : ''}</td>
+            </tr>`;
+        }
     });
 
     return `
@@ -445,17 +498,26 @@ function buildPrintCopy(surveyData, copyNum, total) {
             <div class="print-intro">${escapeHtml(MS_INTRO)}</div>
             
             <div class="print-meta"><strong>End-User/Focal Person:</strong> ${escapeHtml(surveyData.endUser)}</div>
-            <div class="print-meta"><strong>Purpose:</strong> ${escapeHtml(surveyData.purpose)}</div>
+            
+            <div class="print-meta" style="margin-bottom:4px;"><strong>Purpose / Job Order:</strong></div>
+            <div class="print-purpose-box">${escapeHtml(surveyData.purpose).replace(/\n/g, '<br>')}</div>
             
             <table class="print-table">
-                <thead><tr><th>Item No.</th><th>Quantity</th><th>Unit</th><th>Item Description</th><th>Offer</th><th>Unit Price</th><th>Total Amount</th></tr></thead>
+                <thead><tr>
+                    <th style="width:70px;">Stock/Property No.</th>
+                    <th style="width:50px;">Unit</th>
+                    <th style="width:40px;">Item Description</th>
+                    <th>Quantity</th>
+                    <th style="width:70px;">Offer</th>
+                    <th style="width:80px;">Unit Cost</th>
+                    <th style="width:90px;">Total Cost</th>
+                </tr></thead>
                 <tbody>
                     ${rows}
                     <tr><td colspan="4" style="border:none;"></td><td style="text-align:center; font-weight:bold;">12% VAT</td><td></td><td></td></tr>
                 </tbody>
             </table>
             
-            <!-- End-User Signature Section -->
             <div class="print-enduser-signature">
                 <div style="font-weight:bold; font-size:13px;">END-USER / FOCAL PERSON:</div>
                 <div class="sig-block">
@@ -541,16 +603,29 @@ async function fetchForEncode(msNumber) {
         data.items.forEach(it => {
             const row = document.createElement('div');
             row.className = 'encode-row';
-            row.innerHTML = `
-                <input type="text" value="${escapeHtml(it.itemNo)}" readonly style="background:#e9ecef;" class="e-no">
-                <input type="text" value="${escapeHtml(it.quantity)}" readonly style="background:#e9ecef;">
-                <input type="text" value="${escapeHtml(it.unit)}" readonly style="background:#e9ecef;">
-                <input type="text" value="${escapeHtml(it.description)}" readonly style="background:#e9ecef;">
-                <input type="number" class="e-p1" value="${it.price1 || 0}" min="0" step="0.01" oninput="updateAvg(this.closest('.encode-row'))">
-                <input type="number" class="e-p2" value="${it.price2 || 0}" min="0" step="0.01" oninput="updateAvg(this.closest('.encode-row'))">
-                <input type="number" class="e-p3" value="${it.price3 || 0}" min="0" step="0.01" oninput="updateAvg(this.closest('.encode-row'))">
-                <input type="text" class="avg" value="${(parseFloat(it.avgUnitPrice)||0).toFixed(2)}" readonly>
-            `;
+            if (it.isHeader) {
+                row.innerHTML = `
+                    <input type="text" value="${escapeHtml(it.stockNo || '')}" readonly style="background:#e9ecef;" class="e-stock">
+                    <input type="text" value="${escapeHtml(it.quantity)}" readonly style="background:#e9ecef;">
+                    <input type="text" value="${escapeHtml(it.unit)}" readonly style="background:#e9ecef;">
+                    <input type="text" value="${escapeHtml(it.description)}" readonly style="background:#f8f9fa; font-weight:bold;" class="e-desc">
+                    <span style="font-size:10px; color:#6c757d; text-align:center;">(section header)</span>
+                    <span style="font-size:10px; color:#6c757d; text-align:center;">—</span>
+                    <span style="font-size:10px; color:#6c757d; text-align:center;">—</span>
+                    <span style="font-size:10px; color:#6c757d; text-align:center;">—</span>
+                `;
+            } else {
+                row.innerHTML = `
+                    <input type="text" value="${escapeHtml(it.stockNo || '')}" readonly style="background:#e9ecef;" class="e-stock">
+                    <input type="text" value="${escapeHtml(it.quantity)}" readonly style="background:#e9ecef;" class="e-qty">
+                    <input type="text" value="${escapeHtml(it.unit)}" readonly style="background:#e9ecef;" class="e-unit">
+                    <input type="text" value="${escapeHtml(it.description)}" readonly style="background:#e9ecef;" class="e-desc">
+                    <input type="number" class="e-p1" value="${it.price1 || 0}" min="0" step="0.01" oninput="updateAvg(this.closest('.encode-row'))">
+                    <input type="number" class="e-p2" value="${it.price2 || 0}" min="0" step="0.01" oninput="updateAvg(this.closest('.encode-row'))">
+                    <input type="number" class="e-p3" value="${it.price3 || 0}" min="0" step="0.01" oninput="updateAvg(this.closest('.encode-row'))">
+                    <input type="text" class="avg" value="${(parseFloat(it.avgUnitPrice)||0).toFixed(2)}" readonly>
+                `;
+            }
             itemsContainer.appendChild(row);
         });
 
@@ -623,13 +698,22 @@ async function submitEncode() {
 
     const items = [];
     document.querySelectorAll('#encodeItems .encode-row').forEach(row => {
-        items.push({
-            itemNo: row.querySelector('.e-no').value.trim(),
-            price1: parseFloat(row.querySelector('.e-p1').value) || 0,
-            price2: parseFloat(row.querySelector('.e-p2').value) || 0,
-            price3: parseFloat(row.querySelector('.e-p3').value) || 0
-        });
+        // Skip section headers (they have no price inputs)
+        const p1Input = row.querySelector('.e-p1');
+        if (p1Input) {
+            items.push({
+                itemNo: row.querySelector('.e-desc').value.trim() || 'Item',
+                price1: parseFloat(p1Input.value) || 0,
+                price2: parseFloat(row.querySelector('.e-p2').value) || 0,
+                price3: parseFloat(row.querySelector('.e-p3').value) || 0
+            });
+        }
     });
+
+    if (items.length === 0) {
+        showEncodeStatus('No items to encode prices for.', 'error');
+        return;
+    }
 
     const payload = {
         action: 'encodeMarketSurveyQuotes',
@@ -677,7 +761,7 @@ async function submitEncode() {
 // ============================================
 // INIT
 // ============================================
-addDraftRow('1', 1, '', '');
+addDraftRow('1', 1, 'pcs.', 'Enter item description here...', 0, false);
 </script>
 </body>
 </html>
