@@ -110,7 +110,7 @@
     <div class="conn-bar">
         <div class="dot" id="connDot"></div>
         <span class="msg" id="connMsg">Not connected yet — click Test Connection.</span>
-        <button type="button" class="btn btn-small" onclick="testConnection()">🔌 Test Connection</button>
+        <button type="button" class="btn btn-small" onclick="window.testConnection()">🔌 Test Connection</button>
     </div>
 
     <div class="subtab-nav">
@@ -221,32 +221,42 @@
 // ============================================
 // CONFIG — replace with your deployed Web App URL
 // ============================================
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4dl4EvjGyHXsoduBZADNUB2Awk1a3oZY8gQ5zYGnmNwx3-Hz5ek8AtTKOcK39o_UEcg/exec;
-                  
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4dl4EvjGyHXsoduBZADNUB2Awk1a3oZY8gQ5zYGnmNwx3-Hz5ek8AtTKOcK39o_UEcg/exec';
+
 function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str == null ? '' : String(str);
     return div.innerHTML;
 }
 
-function switchSubtab(tab) {
-    document.getElementById('view-create').classList.toggle('active', tab === 'create');
-    document.getElementById('view-encode').classList.toggle('active', tab === 'encode');
-    document.getElementById('tabBtn-create').classList.toggle('active', tab === 'create');
-    document.getElementById('tabBtn-encode').classList.toggle('active', tab === 'encode');
-}
-
 // ============================================
-// CONNECTION TEST
+// CONNECTION TEST - FIXED
 // ============================================
-async function testConnection() {
+window.testConnection = async function() {
     const dot = document.getElementById('connDot');
     const msg = document.getElementById('connMsg');
     dot.className = 'dot';
-    msg.textContent = 'Testing...';
+    msg.textContent = 'Testing connection to server...';
+    console.log('Testing connection to:', SCRIPT_URL);
+    
     try {
-        const res = await fetch(SCRIPT_URL);
+        const res = await fetch(SCRIPT_URL, {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'Accept': 'application/json',
+            }
+        });
+        
+        console.log('Response status:', res.status);
+        
+        if (!res.ok) {
+            throw new Error('HTTP ' + res.status + ': ' + res.statusText);
+        }
+        
         const data = await res.json();
+        console.log('Response data:', data);
+        
         if (data.success && data.status === 'Online') {
             dot.className = 'dot ok';
             msg.textContent = '✅ Connected — spreadsheet ' + data.spreadsheetId;
@@ -255,13 +265,26 @@ async function testConnection() {
             msg.textContent = '⚠️ Unexpected response: ' + JSON.stringify(data);
         }
     } catch (err) {
+        console.error('Connection error:', err);
         dot.className = 'dot bad';
-        msg.textContent = '❌ ' + err.message;
+        msg.textContent = '❌ ' + err.message + ' (Check console for details)';
     }
 }
 
-// run once on load
-testConnection();
+// Run connection test on load with a slight delay
+window.addEventListener('DOMContentLoaded', function() {
+    setTimeout(window.testConnection, 500);
+});
+
+// ============================================
+// TAB SWITCHING
+// ============================================
+function switchSubtab(tab) {
+    document.getElementById('view-create').classList.toggle('active', tab === 'create');
+    document.getElementById('view-encode').classList.toggle('active', tab === 'encode');
+    document.getElementById('tabBtn-create').classList.toggle('active', tab === 'create');
+    document.getElementById('tabBtn-encode').classList.toggle('active', tab === 'encode');
+}
 
 // ============================================
 // STEP 1: CREATE
