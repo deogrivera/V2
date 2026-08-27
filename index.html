@@ -27,10 +27,11 @@
     .form-section.supplier-block { background:#fff; border:1px solid #c9d4e0; }
     .form-section.supplier-block h3 { border-left-color:#d97706; }
 
-    .form-group { display:flex; flex-wrap:wrap; margin-bottom:12px; align-items:center; }
-    .form-group label { width:180px; font-weight:600; color:#333; font-size:14px; }
+    .form-group { display:flex; flex-wrap:wrap; margin-bottom:12px; align-items:flex-start; }
+    .form-group label { width:180px; font-weight:600; color:#333; font-size:14px; padding-top:8px; }
     .form-group input, .form-group textarea { flex:1; padding:8px 12px; border:1px solid #ccc; border-radius:4px; font-size:14px; min-width:200px; }
     .form-group textarea { min-height:60px; resize:vertical; }
+    .form-group textarea.job-order { min-height:80px; background:#f8f9fa; border-color:#d97706; }
 
     .row-header, .draft-row, .encode-row { display:grid; gap:6px; margin-bottom:8px; align-items:center; }
     .draft-row, .row-header.draft { grid-template-columns:70px 70px 90px 1fr 40px; }
@@ -85,6 +86,9 @@
         .print-intro { font-size:12px; text-align:justify; margin-bottom:14px; line-height:1.5; }
         .print-meta { font-size:12px; margin-bottom:4px; }
         .print-meta strong { display:inline-block; width:160px; }
+        .print-job-order { margin:8px 0 12px 0; border:1px solid #ddd; border-radius:4px; }
+        .print-job-order-header { background:#f0f4f8; padding:6px 12px; font-weight:bold; border-bottom:1px solid #ddd; font-size:11px; color:#1a3c6e; }
+        .print-job-order-body { padding:10px 12px; font-size:12px; line-height:1.6; white-space:pre-wrap; }
         .print-table { width:100%; border-collapse:collapse; margin-top:12px; font-size:11px; }
         .print-table th, .print-table td { border:1px solid #000; padding:5px; }
         .print-table th { background:#eee; text-align:center; }
@@ -126,6 +130,10 @@
             <div class="form-group"><label>Date Accomplished:</label><input type="date" id="msDate" required></div>
             <div class="form-group"><label>End-User/Focal Person:</label><input type="text" id="msEndUser" placeholder="e.g., GSS - Motorpool" required></div>
             <div class="form-group"><label>Purpose/Requirement:</label><textarea id="msPurpose" placeholder="What is being surveyed / procured..." required></textarea></div>
+            <div class="form-group">
+                <label>Job Order Description:</label>
+                <textarea id="msJobOrder" class="job-order" placeholder="e.g., Labor &amp; Materials for the periodic maintenance &amp; check up &amp; replacement of worn out parts of RP Vehicle SJB-117 (Toyota Fortuner)"></textarea>
+            </div>
         </div>
 
         <div class="form-section">
@@ -221,16 +229,17 @@
 // ============================================
 // CONFIG — replace with your deployed Web App URL
 // ============================================
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4dl4EvjGyHXsoduBZADNUB2Awk1a3oZY8gQ5zYGnmNwx3-Hz5ek8AtTKOcK39o_UEcg/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz5qklyPCtOVdSgeSXHHwELpjVXinHIYjvCx8xf95AVy8NgwHS5xemEd9OzPzWnWCXvBA/exec';
 
 function escapeHtml(str) {
+    if (str == null) return '';
     const div = document.createElement('div');
-    div.textContent = str == null ? '' : String(str);
+    div.textContent = String(str);
     return div.innerHTML;
 }
 
 // ============================================
-// CONNECTION TEST - FIXED
+// CONNECTION TEST
 // ============================================
 window.testConnection = async function() {
     const dot = document.getElementById('connDot');
@@ -271,7 +280,7 @@ window.testConnection = async function() {
     }
 }
 
-// Run connection test on load with a slight delay
+// Run connection test on load
 window.addEventListener('DOMContentLoaded', function() {
     setTimeout(window.testConnection, 500);
 });
@@ -325,6 +334,7 @@ function resetCreateForm() {
     document.getElementById('msDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('msEndUser').value = '';
     document.getElementById('msPurpose').value = '';
+    document.getElementById('msJobOrder').value = '';
     document.getElementById('draftItems').innerHTML = '';
     addDraftRow('1', 1, '', '');
     document.getElementById('createStatus').style.display = 'none';
@@ -343,6 +353,7 @@ async function submitCreate() {
     const msDate = document.getElementById('msDate').value;
     const msEndUser = document.getElementById('msEndUser').value.trim();
     const msPurpose = document.getElementById('msPurpose').value.trim();
+    const msJobOrder = document.getElementById('msJobOrder').value.trim();
 
     if (!msDate || !msEndUser || !msPurpose) {
         showCreateStatus('Please fill in date, end-user, and purpose.', 'error');
@@ -370,8 +381,13 @@ async function submitCreate() {
 
     const payload = {
         action: 'createMarketSurvey',
-        msNumber, dateAccomplished: msDate, endUser: msEndUser, purpose: msPurpose,
-        items, timestamp: new Date().toISOString()
+        msNumber, 
+        dateAccomplished: msDate, 
+        endUser: msEndUser, 
+        purpose: msPurpose,
+        jobOrder: msJobOrder,
+        items, 
+        timestamp: new Date().toISOString()
     };
 
     const btn = document.getElementById('createBtn');
@@ -390,7 +406,14 @@ async function submitCreate() {
 
         if (result.success) {
             showCreateStatus(`✅ Saved! ${result.itemsAdded} item(s) added to ${result.msNumber}. You can now print it.`, 'success');
-            lastSurvey = { msNumber, dateAccomplished: msDate, endUser: msEndUser, purpose: msPurpose, items };
+            lastSurvey = { 
+                msNumber, 
+                dateAccomplished: msDate, 
+                endUser: msEndUser, 
+                purpose: msPurpose,
+                jobOrder: msJobOrder,
+                items 
+            };
             document.getElementById('printBtn').disabled = false;
         } else {
             showCreateStatus('❌ ' + (result.error || 'Unknown error'), 'error');
@@ -420,6 +443,17 @@ function buildPrintCopy(surveyData, copyNum, total) {
         </tr>`;
     });
 
+    // Build Job Order HTML if present
+    let jobOrderHtml = '';
+    if (surveyData.jobOrder) {
+        jobOrderHtml = `
+            <div class="print-job-order">
+                <div class="print-job-order-header">📋 JOB ORDER:</div>
+                <div class="print-job-order-body">${escapeHtml(surveyData.jobOrder)}</div>
+            </div>
+        `;
+    }
+
     return `
         <div class="print-copy">
             <div class="print-copy-label">Supplier copy ${copyNum} of ${total}</div>
@@ -427,8 +461,12 @@ function buildPrintCopy(surveyData, copyNum, total) {
             <div class="print-meta"><strong>MS No.:</strong> ${escapeHtml(surveyData.msNumber)}</div>
             <div class="print-meta">Sir/Madam:</div>
             <div class="print-intro">${escapeHtml(MS_INTRO)}</div>
+            
             <div class="print-meta"><strong>End-User/Focal Person:</strong> ${escapeHtml(surveyData.endUser)}</div>
             <div class="print-meta"><strong>Purpose:</strong> ${escapeHtml(surveyData.purpose)}</div>
+            
+            ${jobOrderHtml}
+            
             <table class="print-table">
                 <thead><tr><th>Item No.</th><th>Quantity</th><th>Unit</th><th>Item Description</th><th>Offer</th><th>Unit Price</th><th>Total Amount</th></tr></thead>
                 <tbody>
