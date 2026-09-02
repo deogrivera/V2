@@ -96,6 +96,13 @@
         #printArea { display:block; position:absolute; top:0; left:0; width:100%; }
         .print-copy { page-break-after:always; padding:25px; font-family:'Times New Roman',Times,serif; }
         .print-copy:last-child { page-break-after:auto; }
+        .print-header { display:flex; align-items:center; gap:12px; border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:14px; }
+        .print-header .logo-box { width:72px; height:72px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+        .print-header .logo-box img { max-width:100%; max-height:100%; object-fit:contain; }
+        .print-header .header-text { flex:1; text-align:left; font-size:11.5px; line-height:1.45; padding-left:4px; }
+        .print-header .header-text .dept-name { font-weight:bold; font-size:14px; }
+        .print-header .seal-group { display:flex; gap:8px; flex-shrink:0; }
+        .print-header .seal-group .logo-box { width:58px; height:58px; }
         .print-title { text-align:center; font-size:18px; font-weight:bold; margin-bottom:14px; }
         .print-copy-label { text-align:right; font-size:11px; color:#555; margin-bottom:10px; }
         .print-intro { font-size:12px; text-align:justify; margin-bottom:14px; line-height:1.5; }
@@ -219,6 +226,7 @@
 
             <div class="button-group">
                 <button type="button" class="btn btn-accent" id="editBtn" onclick="submitEdit()">💾 Save Changes</button>
+                <button type="button" class="btn btn-print" onclick="printEditedSurvey()">🖨️ Print Market Survey</button>
                 <button type="button" class="btn btn-danger" onclick="discardEdit()">🗑️ Discard Changes</button>
             </div>
         </div>
@@ -764,6 +772,37 @@ async function submitCreate() {
 // ============================================
 // PRINT
 // ============================================
+// ============================================
+// OFFICIAL LETTERHEAD (replace with your own logo/seal images)
+// Paste a base64 data URI ("data:image/png;base64,...") or a hosted
+// image URL for each. Leave blank ('') to show no image in that slot.
+// ============================================
+const DA_LOGO_URL = '';   // Department of Agriculture seal (left)
+const ISO_LOGO_URL = '';  // Certification International ISO 9001:2015 badge
+const PAB_LOGO_URL = '';  // PAB Accreditation badge
+
+function buildLetterheadHtml() {
+    const logoImg = DA_LOGO_URL ? `<img src="${DA_LOGO_URL}" alt="DA Logo">` : '';
+    const isoImg = ISO_LOGO_URL ? `<img src="${ISO_LOGO_URL}" alt="ISO 9001:2015">` : '';
+    const pabImg = PAB_LOGO_URL ? `<img src="${PAB_LOGO_URL}" alt="PAB Accredited">` : '';
+    return `
+        <div class="print-header">
+            <div class="logo-box">${logoImg}</div>
+            <div class="header-text">
+                <div>Republic of the Philippines</div>
+                <div class="dept-name">DEPARTMENT OF AGRICULTURE</div>
+                <div>Regional Field Office No. 1</div>
+                <div>Aguila Road, Sevilla, City of San Fernando, La Union</div>
+                <div>Telephone No. (072) 242 1045/1046</div>
+            </div>
+            <div class="seal-group">
+                <div class="logo-box">${isoImg}</div>
+                <div class="logo-box">${pabImg}</div>
+            </div>
+        </div>
+    `;
+}
+
 const MS_INTRO = "In determining the technical specifications of the goods it will procure, the PMO or end-user or implementing unit must consider the objectives of the project or the procurement at hand, and identify the standards that should be met by the goods in terms of function, performance, environmental interface and/or design. It must also conduct a market survey that will include a study of the available products or services, industry developments or standards, product or service standards specified by the authorized government entity like the Bureau of Product Standards, ISO9000 or similar local or international bodies. As a rule, Philippine standards, as specified by the Bureau of Product Standards, must be followed. For products where there are no specified Philippine standards, the standards of the country of origin or other international body may be considered. Product brochures, technical publications, industry newsletters, the industry itself, as well as the Internet, are good sources of product information. The conduct of a comparative study of the options available in the market and their relevance to the requirements of the Project is highly recommended. As such, please quote your best offer for the item/s listed below to determine the availability of the goods and cost or market price of the product to come up with a \"fair criteria\".";
 
 function buildPrintCopy(surveyData, copyNum, total) {
@@ -796,6 +835,7 @@ function buildPrintCopy(surveyData, copyNum, total) {
     return `
         <div class="print-copy">
             <div class="print-copy-label">Supplier copy ${copyNum} of ${total}</div>
+            ${buildLetterheadHtml()}
             <div class="print-title">MARKET SURVEY</div>
             <div class="print-meta"><strong>MS No.:</strong> ${escapeHtml(surveyData.msNumber)}</div>
             <div class="print-meta">Sir/Madam:</div>
@@ -856,6 +896,44 @@ function printLastSurvey() {
     if (!lastSurvey) { alert('Save the Market Survey first.'); return; }
     let html = '';
     for (let i = 1; i <= 3; i++) html += buildPrintCopy(lastSurvey, i, 3);
+    document.getElementById('printArea').innerHTML = html;
+    window.print();
+}
+
+function printEditedSurvey() {
+    if (!editSurveyData) { alert('Load a Market Survey for editing first.'); return; }
+
+    // Build the print data from what's currently on screen, so unsaved
+    // edits (added/removed/changed rows) print correctly too.
+    const items = [];
+    document.querySelectorAll('#editItems .edit-row').forEach(row => {
+        const desc = row.querySelector('.e-desc').value.trim();
+        if (!desc) return;
+        items.push({
+            stockNo: row.querySelector('.e-stock').value.trim(),
+            quantity: parseFloat(row.querySelector('.e-qty').value) || 0,
+            unit: row.querySelector('.e-unit').value.trim(),
+            description: desc,
+            unitCost: parseFloat(row.querySelector('.e-cost').value) || 0,
+            isHeader: row.querySelector('.e-is-header').checked
+        });
+    });
+
+    if (items.length === 0) {
+        alert('Add at least one item before printing.');
+        return;
+    }
+
+    const printData = {
+        msNumber: editSurveyData.msNumber,
+        dateAccomplished: editSurveyData.dateAccomplished,
+        endUser: editSurveyData.endUser,
+        purpose: editSurveyData.purpose,
+        items: items
+    };
+
+    let html = '';
+    for (let i = 1; i <= 3; i++) html += buildPrintCopy(printData, i, 3);
     document.getElementById('printArea').innerHTML = html;
     window.print();
 }
