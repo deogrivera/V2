@@ -118,11 +118,9 @@
         .print-footer .field-row { display:flex; margin-top:10px; }
         .print-footer .field-row label { width:200px; font-weight:bold; }
         .print-footer .field-row .fill-line { flex:1; border-bottom:1px solid #000; }
-        .print-enduser-signature { margin-top:20px; padding-top:10px; border-top:2px solid #1a3c6e; }
-        .print-enduser-signature .sig-block { display:flex; align-items:center; gap:20px; margin-top:8px; }
-        .print-enduser-signature .sig-line { border-bottom:1px solid #000; width:250px; height:30px; }
-        .print-enduser-signature .sig-label { font-size:11px; color:#555; text-align:center; margin-top:2px; }
-        .print-enduser-signature .enduser-label { font-weight:bold; font-size:12px; }
+        .print-enduser-name { text-align:center; margin:14px 0; }
+        .print-enduser-name .name { font-weight:bold; font-size:13px; }
+        .print-enduser-name .label { font-size:11px; margin-top:2px; }
         .print-purpose-box { background:#f9f9f9; border-left:4px solid #1a3c6e; padding:10px 14px; margin:8px 0 14px 0; font-size:12px; line-height:1.6; white-space:pre-wrap; }
     }
 
@@ -777,9 +775,9 @@ async function submitCreate() {
 // Paste a base64 data URI ("data:image/png;base64,...") or a hosted
 // image URL for each. Leave blank ('') to show no image in that slot.
 // ============================================
-const DA_LOGO_URL = 'https://drive.google.com/file/d/13ZLw6o01mo9EgynQQfF-BGZqChn8GvNa/view?usp=sharing';   // Department of Agriculture seal (left)
+const DA_LOGO_URL = '';   // Department of Agriculture seal (left)
 const ISO_LOGO_URL = '';  // Certification International ISO 9001:2015 badge
-const PAB_LOGO_URL = 'https://drive.google.com/file/d/1YH7k3LMTBGCnDfmxMjXNJaLIW5ICgAaf/view?usp=drive_link';  // PAB Accreditation badge
+const PAB_LOGO_URL = '';  // PAB Accreditation badge
 
 function buildLetterheadHtml() {
     const logoImg = DA_LOGO_URL ? `<img src="${DA_LOGO_URL}" alt="DA Logo">` : '';
@@ -841,7 +839,10 @@ function buildPrintCopy(surveyData, copyNum, total) {
             <div class="print-meta">Sir/Madam:</div>
             <div class="print-intro">${escapeHtml(MS_INTRO)}</div>
             
-            <div class="print-meta"><strong>End-User/Focal Person:</strong> ${escapeHtml(surveyData.endUser)}</div>
+            <div class="print-enduser-name">
+                <div class="name">${escapeHtml(surveyData.endUser).toUpperCase()}</div>
+                <div class="label">PRINTED NAME/SIGNATURE OF END USER/FOCAL PERSON</div>
+            </div>
             
             <div class="print-meta" style="margin-bottom:4px;"><strong>Purpose / Job Order:</strong></div>
             <div class="print-purpose-box">${escapeHtml(surveyData.purpose).replace(/\n/g, '<br>')}</div>
@@ -861,20 +862,6 @@ function buildPrintCopy(surveyData, copyNum, total) {
                     <tr><td colspan="4" style="border:none;"></td><td style="text-align:center; font-weight:bold;">12% VAT</td><td></td><td></td></tr>
                 </tbody>
             </table>
-            
-            <div class="print-enduser-signature">
-                <div style="font-weight:bold; font-size:13px;">END-USER / FOCAL PERSON:</div>
-                <div class="sig-block">
-                    <div>
-                        <div class="sig-line"></div>
-                        <div class="sig-label">Signature over Printed Name</div>
-                    </div>
-                    <div style="flex:1;">
-                        <div style="font-size:12px; font-weight:bold;">${escapeHtml(surveyData.endUser)}</div>
-                        <div style="font-size:11px; color:#555;">End-User / Focal Person</div>
-                    </div>
-                </div>
-            </div>
             
             <div class="print-footer">
                 <div class="sig-line"></div>
