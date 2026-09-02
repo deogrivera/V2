@@ -171,7 +171,9 @@
         <button type="button" class="subtab-btn" id="tabBtn-edit" onclick="switchSubtab('edit')">✏️ Edit Survey</button>
         <button type="button" class="subtab-btn" id="tabBtn-encode" onclick="switchSubtab('encode')">📥 Encode Quotes</button>
         <button type="button" class="subtab-btn" id="tabBtn-pr" onclick="switchSubtab('pr')">📄 Generate PR</button>
+        <button type="button" class="subtab-btn" id="tabBtn-personnel" onclick="switchSubtab('personnel')">👤 Personnel</button>
         <button type="button" class="subtab-btn" id="tabBtn-suppliers" onclick="switchSubtab('suppliers')">🏢 Suppliers</button>
+        <button type="button" class="subtab-btn" id="tabBtn-personnel" onclick="switchSubtab('personnel')">🧑‍💼 Personnel</button>
     </div>
 
     <!-- ============ STEP 1: CREATE ============ -->
@@ -382,11 +384,24 @@
             </div>
 
             <div class="form-section">
-                <h3>Requested / Approved By</h3>
-                <div class="form-group"><label>Requested By (Name):</label><input type="text" id="prReqName"></div>
-                <div class="form-group"><label>Requested By (Designation):</label><input type="text" id="prReqDesignation"></div>
-                <div class="form-group"><label>Approved By (Name):</label><input type="text" id="prApprName"></div>
-                <div class="form-group"><label>Approved By (Designation):</label><input type="text" id="prApprDesignation"></div>
+                <h3>Requested / Approved By <span style="font-size:12px; font-weight:normal; color:#6c757d;">— choose from Personnel; enroll new names in the Personnel tab</span></h3>
+                <div class="form-group">
+                    <label>Requested By:</label>
+                    <select id="prReqSelect" onchange="applyPersonnelSelection('req', this.value)">
+                        <option value="">-- Select Requisitioner --</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Requested By (Designation):</label><input type="text" id="prReqDesignation" readonly style="background:#e9ecef;"></div>
+                <input type="hidden" id="prReqName">
+
+                <div class="form-group">
+                    <label>Approved By:</label>
+                    <select id="prApprSelect" onchange="applyPersonnelSelection('appr', this.value)">
+                        <option value="">-- Select Approver --</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Approved By (Designation):</label><input type="text" id="prApprDesignation" readonly style="background:#e9ecef;"></div>
+                <input type="hidden" id="prApprName">
             </div>
 
             <div class="form-section">
@@ -420,6 +435,34 @@
             </div>
             <div id="suppliersList" style="max-height:500px; overflow-y:auto; border:1px solid #dee2e6; border-radius:4px;">
                 <div style="padding:20px; text-align:center; color:#6c757d;">Click "Refresh List" to load suppliers.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ STEP 5: PERSONNEL MANAGEMENT ============ -->
+    <div id="view-personnel" class="subtab-view">
+        <div class="form-section">
+            <h3>🧑‍💼 Enroll a Requisitioner / Approver</h3>
+            <div class="form-group"><label>Full Name:</label><input type="text" id="personName" placeholder="e.g., Deo G. Rivera"></div>
+            <div class="form-group"><label>Designation:</label><input type="text" id="personDesignation" placeholder="e.g., Administrative Officer V"></div>
+            <div class="form-group">
+                <label>Role:</label>
+                <select id="personRole">
+                    <option value="Requisitioner">Requisitioner (appears under Requested by)</option>
+                    <option value="Approver">Approver (appears under Approved by)</option>
+                    <option value="Both">Both</option>
+                </select>
+            </div>
+            <button type="button" class="btn btn-accent btn-small" onclick="submitPersonnel()">💾 Save Personnel</button>
+            <div id="personnelStatus" class="status-message"></div>
+        </div>
+
+        <div class="form-section">
+            <h3>Enrolled Personnel</h3>
+            <button type="button" class="btn btn-info btn-small" onclick="loadPersonnelList()">🔄 Refresh List</button>
+            <span style="font-size:12px; color:#6c757d; margin-left:10px;">These names populate the "Requested by" / "Approved by" dropdowns on the Generate PR tab.</span>
+            <div id="personnelListBox" style="max-height:500px; overflow-y:auto; border:1px solid #dee2e6; border-radius:4px; margin-top:10px;">
+                <div style="padding:20px; text-align:center; color:#6c757d;">Click "Refresh List" to load personnel.</div>
             </div>
         </div>
     </div>
@@ -477,6 +520,7 @@ window.testConnection = async function() {
             msg.textContent = '✅ Connected — spreadsheet ' + data.spreadsheetId;
             // Load suppliers on connection
             loadSuppliers();
+            loadPersonnel();
         } else {
             dot.className = 'dot bad';
             msg.textContent = '⚠️ Unexpected response: ' + JSON.stringify(data);
@@ -501,14 +545,19 @@ function switchSubtab(tab) {
     document.getElementById('view-encode').classList.toggle('active', tab === 'encode');
     document.getElementById('view-pr').classList.toggle('active', tab === 'pr');
     document.getElementById('view-suppliers').classList.toggle('active', tab === 'suppliers');
+    document.getElementById('view-personnel').classList.toggle('active', tab === 'personnel');
     document.getElementById('tabBtn-create').classList.toggle('active', tab === 'create');
     document.getElementById('tabBtn-edit').classList.toggle('active', tab === 'edit');
     document.getElementById('tabBtn-encode').classList.toggle('active', tab === 'encode');
     document.getElementById('tabBtn-pr').classList.toggle('active', tab === 'pr');
     document.getElementById('tabBtn-suppliers').classList.toggle('active', tab === 'suppliers');
+    document.getElementById('tabBtn-personnel').classList.toggle('active', tab === 'personnel');
     
     if (tab === 'suppliers') {
         loadSuppliersList();
+    }
+    if (tab === 'personnel') {
+        loadPersonnelList();
     }
 }
 
@@ -1422,6 +1471,136 @@ async function submitEncode() {
 }
 
 // ============================================
+// PERSONNEL (Requisitioners / Approvers)
+// ============================================
+let personnelData = [];
+
+async function loadPersonnel() {
+    try {
+        const res = await fetch(SCRIPT_URL + '?action=getPersonnel');
+        const data = await res.json();
+        if (data.success) {
+            personnelData = data.personnel || [];
+            populatePersonnelDropdowns();
+        }
+    } catch (err) {
+        console.error('loadPersonnel error:', err);
+    }
+}
+
+function populatePersonnelDropdowns() {
+    const reqSelect = document.getElementById('prReqSelect');
+    const apprSelect = document.getElementById('prApprSelect');
+    if (!reqSelect || !apprSelect) return;
+
+    const reqCurrent = reqSelect.value;
+    const apprCurrent = apprSelect.value;
+
+    reqSelect.innerHTML = '<option value="">-- Select Requisitioner --</option>';
+    apprSelect.innerHTML = '<option value="">-- Select Approver --</option>';
+
+    personnelData.forEach(p => {
+        if (p.role === 'Requisitioner' || p.role === 'Both') {
+            const opt = document.createElement('option');
+            opt.value = p.name;
+            opt.textContent = p.name + ' — ' + p.designation;
+            reqSelect.appendChild(opt);
+        }
+        if (p.role === 'Approver' || p.role === 'Both') {
+            const opt2 = document.createElement('option');
+            opt2.value = p.name;
+            opt2.textContent = p.name + ' — ' + p.designation;
+            apprSelect.appendChild(opt2);
+        }
+    });
+
+    if (reqCurrent) reqSelect.value = reqCurrent;
+    if (apprCurrent) apprSelect.value = apprCurrent;
+}
+
+function applyPersonnelSelection(which, name) {
+    const person = personnelData.find(p => p.name === name);
+    if (which === 'req') {
+        document.getElementById('prReqName').value = name;
+        document.getElementById('prReqDesignation').value = person ? person.designation : '';
+    } else if (which === 'appr') {
+        document.getElementById('prApprName').value = name;
+        document.getElementById('prApprDesignation').value = person ? person.designation : '';
+    }
+}
+
+function trySelectRequisitioner(endUserName) {
+    const select = document.getElementById('prReqSelect');
+    if (!select || !endUserName) return;
+    const match = personnelData.find(p => p.name.toLowerCase().trim() === endUserName.toLowerCase().trim());
+    if (match) {
+        select.value = match.name;
+        applyPersonnelSelection('req', match.name);
+    }
+}
+
+function showPersonnelStatus(msg, type) {
+    const el = document.getElementById('personnelStatus');
+    el.textContent = msg;
+    el.className = 'status-message ' + type;
+}
+
+async function submitPersonnel() {
+    const name = document.getElementById('personName').value.trim();
+    const designation = document.getElementById('personDesignation').value.trim();
+    const role = document.getElementById('personRole').value;
+
+    if (!name || !designation) {
+        showPersonnelStatus('Please fill in name and designation.', 'error');
+        return;
+    }
+
+    showPersonnelStatus('Saving...', 'info');
+    try {
+        const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'addPersonnel', name: name, designation: designation, role: role })
+        });
+        const result = await res.json();
+        if (result.success) {
+            showPersonnelStatus('✅ Saved ' + name + '.', 'success');
+            document.getElementById('personName').value = '';
+            document.getElementById('personDesignation').value = '';
+            await loadPersonnel();
+            loadPersonnelList();
+        } else {
+            showPersonnelStatus('❌ ' + (result.error || 'Unknown error'), 'error');
+        }
+    } catch (err) {
+        showPersonnelStatus('❌ ' + err.message, 'error');
+    }
+}
+
+async function loadPersonnelList() {
+    const box = document.getElementById('personnelListBox');
+    box.innerHTML = '<div style="padding:20px; text-align:center; color:#6c757d;">Loading...</div>';
+    try {
+        const res = await fetch(SCRIPT_URL + '?action=getPersonnel');
+        const data = await res.json();
+        if (!data.success || !data.personnel || data.personnel.length === 0) {
+            box.innerHTML = '<div style="padding:20px; text-align:center; color:#6c757d;">No personnel enrolled yet.</div>';
+            return;
+        }
+        personnelData = data.personnel;
+        populatePersonnelDropdowns();
+        box.innerHTML = data.personnel.map(p => `
+            <div style="padding:10px 14px; border-bottom:1px solid #eee;">
+                <strong>${escapeHtml(p.name)}</strong> <span style="font-size:11px; color:#6c757d;">(${escapeHtml(p.role)})</span><br>
+                <span style="font-size:12px; color:#555;">${escapeHtml(p.designation)}</span>
+            </div>
+        `).join('');
+    } catch (err) {
+        box.innerHTML = '<div style="padding:20px; text-align:center; color:#dc3545;">❌ ' + err.message + '</div>';
+    }
+}
+
+// ============================================
 // STEP 4: GENERATE PURCHASE REQUEST
 // ============================================
 let prSurveyData = null;
@@ -1481,7 +1660,7 @@ async function fetchForPR(msNumber) {
         document.getElementById('prNumber').value = generatePRNumber();
         document.getElementById('prDate').value = new Date().toISOString().split('T')[0];
         document.getElementById('prPurpose').value = data.purpose || '';
-        document.getElementById('prReqName').value = data.endUser || '';
+        trySelectRequisitioner(data.endUser);
 
         renderPRItems(data.items);
 
