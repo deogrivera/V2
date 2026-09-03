@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Purchase Request — DA-RFO I</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:#f0f4f8; padding:20px; }
+    .container { max-width:1100px; margin:0 auto; background:#fff; padding:30px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1); }
+    h1 { color:#1a3c6e; border-bottom:3px solid #1a3c6e; padding-bottom:10px; margin-bottom:20px; text-align:center; }
+
+    .conn-bar { display:flex; align-items:center; gap:10px; background:#f8f9fa; border:1px solid #dee2e6; border-radius:6px; padding:10px 15px; margin-bottom:20px; font-size:13px; }
+    .conn-bar .dot { width:10px; height:10px; border-radius:50%; background:#adb5bd; flex-shrink:0; }
+    .conn-bar .dot.ok { background:#28a745; }
+    .conn-bar .dot.bad { background:#dc3545; }
+    .conn-bar span.msg { flex:1; }
+
+    .subtab-nav { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
+    .subtab-btn { flex:1; min-width:100px; padding:12px; background:#fff; border:2px solid #d97706; color:#d97706; cursor:pointer; font-size:13px; font-weight:700; border-radius:6px; }
+    .subtab-btn.active { background:#d97706; color:#fff; }
+    .subtab-view { display:none; }
+    .subtab-view.active { display:block; }
+
+    .form-section { border:1px solid #dde1e6; padding:20px; margin-bottom:20px; border-radius:5px; background:#fafbfc; }
+    .form-section h3 { color:#1a3c6e; margin-bottom:15px; font-size:16px; border-left:4px solid #1a3c6e; padding-left:10px; }
+    .form-section.supplier-block { background:#fff; border:1px solid #c9d4e0; }
+    .form-section.supplier-block h3 { border-left-color:#d97706; }
+
+    .form-group { display:flex; flex-wrap:wrap; margin-bottom:12px; align-items:flex-start; }
+    .form-group label { width:180px; font-weight:600; color:#333; font-size:14px; padding-top:8px; }
+    .form-group input, .form-group textarea, .form-group select { flex:1; padding:8px 12px; border:1px solid #ccc; border-radius:4px; font-size:14px; min-width:200px; }
+    .form-group textarea { min-height:60px; resize:vertical; }
+    .form-group .help-text { font-size:11px; color:#6c757d; margin-left:180px; margin-top:4px; width:100%; }
+    .form-group .btn-small { margin-left:8px; }
+
+    .row-header, .draft-row, .encode-row, .edit-row { display:grid; gap:6px; margin-bottom:8px; align-items:center; }
+    .draft-row, .row-header.draft { grid-template-columns:60px 60px 80px 1fr 60px 100px 40px; }
+    .edit-row, .row-header.edit { grid-template-columns:60px 60px 80px 1fr 60px 100px 40px; }
+    .encode-row, .row-header.encode { grid-template-columns:60px 60px 70px 1fr 90px 90px 90px 90px; }
+    .row-header { font-weight:700; background:#e9ecef; padding:8px 4px; text-align:center; border-radius:4px; font-size:11px; color:#1a3c6e; }
+    .draft-row input, .encode-row input, .edit-row input { padding:6px 8px; border:1px solid #ccc; border-radius:4px; font-size:12px; width:100%; }
+    .draft-row input[type="checkbox"], .edit-row input[type="checkbox"] { width:20px; margin:0 auto; }
+    .draft-row .is-header-row, .edit-row .is-header-row { background:#f8f9fa; }
+    .encode-row input.avg { background:#eef6ee; font-weight:700; color:#1a6e3c; }
+    .edit-row .existing-item { background:#f0f8ff; }
+
+    .btn { background:#1a3c6e; color:#fff; padding:10px 20px; border:none; border-radius:5px; cursor:pointer; font-size:14px; font-weight:600; margin-right:10px; }
+    .btn:hover { background:#2a5a8e; }
+    .btn-success { background:#28a745; } .btn-success:hover { background:#218838; }
+    .btn-danger { background:#dc3545; } .btn-danger:hover { background:#c82333; }
+    .btn-accent { background:#d97706; } .btn-accent:hover { background:#b85f04; }
+    .btn-print { background:#17a2b8; } .btn-print:hover { background:#128294; }
+    .btn-secondary { background:#6c757d; } .btn-secondary:hover { background:#5a6268; }
+    .btn-warning { background:#ffc107; color:#212529; } .btn-warning:hover { background:#e0a800; }
+    .btn-info { background:#0dcaf0; color:#000; } .btn-info:hover { background:#0bb5d9; }
+    .btn:disabled { opacity:0.6; cursor:not-allowed; }
+    .btn-small { padding:6px 12px; font-size:12px; }
+    .btn-sm { padding:4px 10px; font-size:11px; }
+
+    .button-group { margin-top:20px; text-align:center; }
+
+    .status-message { padding:12px 15px; margin-top:15px; border-radius:5px; display:none; font-size:14px; }
+    .status-message.success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; display:block; }
+    .status-message.error { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; display:block; }
+    .status-message.info { background:#d1ecf1; color:#0c5460; border:1px solid #bee5eb; display:block; }
+
+    .ms-lookup { background:#fff8ec; border:1px dashed #d97706; border-radius:6px; padding:15px; margin-bottom:20px; }
+    .ms-lookup h4 { color:#b85f04; font-size:14px; margin-bottom:10px; }
+    .ms-lookup-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .ms-lookup-row input { flex:1; min-width:180px; padding:8px 12px; border:1px solid #ccc; border-radius:4px; font-size:14px; }
+
+    .browse-list { margin-top:10px; border:1px solid #eadfcb; border-radius:6px; background:#fff; max-height:220px; overflow-y:auto; display:none; }
+    .browse-list.visible { display:block; }
+    .browse-item { padding:10px 12px; border-bottom:1px solid #f0ede3; cursor:pointer; font-size:13px; }
+    .browse-item:last-child { border-bottom:none; }
+    .browse-item:hover { background:#fff8ec; }
+    .status-pill { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; margin-left:6px; }
+    .status-pill.pending { background:#fff3cd; color:#856404; }
+    .status-pill.quoted { background:#d4edda; color:#155724; }
+    .status-pill.editing { background:#cce5ff; color:#004085; }
+
+    .summary-box { background:#eef2f7; border-radius:6px; padding:12px 15px; margin-bottom:15px; font-size:13px; display:none; }
+    .summary-box.visible { display:block; }
+
+    .edit-badge { display:inline-block; background:#d97706; color:#fff; padding:2px 10px; border-radius:12px; font-size:10px; margin-left:8px; }
+
+    .supplier-select-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+    .supplier-select-row select { flex:1; padding:8px 12px; border:1px solid #ccc; border-radius:4px; font-size:13px; }
+    .supplier-select-row .btn-sm { white-space:nowrap; }
+
+    #printArea { display:none; }
+    @media print {
+        body * { visibility:hidden; }
+        #printArea, #printArea * { visibility:visible; }
+        #printArea { display:block; position:absolute; top:0; left:0; width:100%; }
+        .pr-copy { padding:25px; font-family:'Times New Roman',Times,serif; }
+        .pr-title { text-align:center; font-size:20px; font-weight:bold; margin:6px 0 14px; }
+        .pr-topline { display:flex; gap:20px; font-size:12px; margin-bottom:4px; }
+        .pr-topline .field { flex:1; }
+        .pr-topline .field strong { margin-right:4px; }
+        .pr-meta-row { display:flex; gap:20px; font-size:12px; margin-bottom:4px; }
+        .pr-meta-row .field { flex:1; }
+        .pr-table { width:100%; border-collapse:collapse; margin:14px 0; font-size:11px; }
+        .pr-table th, .pr-table td { border:1px solid #000; padding:5px; }
+        .pr-table th { background:#eee; text-align:center; font-weight:bold; }
+        .pr-table .section-header td { background:#f8f9fa; font-weight:bold; text-align:left; padding-left:10px; }
+        .pr-grand-total td { font-weight:bold; text-align:right; font-size:13px; }
+        .pr-purpose { font-size:12px; margin:10px 0; }
+        .pr-signblock { display:flex; justify-content:space-between; margin-top:20px; font-size:12px; }
+        .pr-signblock .col { width:48%; }
+        .pr-signblock .sig-line { border-bottom:1px solid #000; height:34px; margin-bottom:2px; }
+        .pr-signblock .sig-label { font-size:11px; color:#555; }
+        .pr-signblock .name { font-weight:bold; margin-top:10px; }
+        .pr-signblock .designation { font-size:11px; }
+        .pr-verify-block { display:flex; justify-content:space-between; margin-top:18px; font-size:12px; }
+        .pr-verify-block .col { width:48%; }
+        .pr-vts { text-align:right; font-size:11px; margin-top:30px; }
+        .print-copy { page-break-after:always; padding:25px; font-family:'Times New Roman',Times,serif; }
+        .print-copy:last-child { page-break-after:auto; }
+        .print-header { display:flex; align-items:center; gap:12px; border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:14px; }
+        .print-header .logo-box { width:72px; height:72px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+        .print-header .logo-box img { max-width:100%; max-height:100%; object-fit:contain; }
+        .print-header .header-text { flex:1; text-align:left; font-size:11.5px; line-height:1.45; padding-left:4px; }
+        .print-header .header-text .dept-name { font-weight:bold; font-size:14px; }
+        .print-header .seal-group { display:flex; gap:8px; flex-shrink:0; }
+        .print-header .seal-group .logo-box { width:58px; height:58px; }
+        .print-title { text-align:center; font-size:18px; font-weight:bold; margin-bottom:14px; }
+        .print-copy-label { text-align:right; font-size:11px; color:#555; margin-bottom:10px; }
+        .print-intro { font-size:12px; text-align:justify; margin-bottom:14px; line-height:1.5; }
+        .print-meta { font-size:12px; margin-bottom:4px; }
+        .print-meta strong { display:inline-block; width:160px; }
+        .print-table { width:100%; border-collapse:collapse; margin-top:12px; font-size:11px; }
+        .print-table th, .print-table td { border:1px solid #000; padding:5px; }
+        .print-table th { background:#eee; text-align:center; }
+        .print-table .section-header td { background:#f8f9fa; font-weight:bold; }
+        .print-table .section-header td { text-align:left; padding-left:10px; }
+        .print-footer { margin-top:30px; font-size:12px; }
+        .print-footer .sig-line { border-bottom:1px solid #000; height:26px; margin-bottom:2px; }
+        .print-footer .field-row { display:flex; margin-top:10px; }
+        .print-footer .field-row label { width:200px; font-weight:bold; }
+        .print-footer .field-row .fill-line { flex:1; border-bottom:1px solid #000; }
+        .print-enduser-name { text-align:center; margin:14px 0; }
+        .print-enduser-name .name { font-weight:bold; font-size:13px; }
+        .print-enduser-name .label { font-size:11px; margin-top:2px; }
+        .print-purpose-box { background:#f9f9f9; border-left:4px solid #1a3c6e; padding:10px 14px; margin:8px 0 14px 0; font-size:12px; line-height:1.6; white-space:pre-wrap; }
+    }
+
+    @media (max-width:768px) {
+        .form-group label { width:100%; margin-bottom:5px; }
+        .draft-row, .row-header.draft, .edit-row, .row-header.edit, .encode-row, .row-header.encode { grid-template-columns:1fr 1fr; }
+        .row-header { display:none; }
+        .container { padding:15px; }
+        .supplier-select-row { flex-wrap:wrap; }
+    }
+    .back-link { display:inline-block; margin-bottom:14px; font-size:13px; color:#1a3c6e; text-decoration:none; font-weight:600; }
+    .back-link:hover { text-decoration:underline; }
+</style>
+<body>
+<div class="container">
+    <a class="back-link" href="index.html">&larr; Back to Landing Page</a>
+    <h1>📄 PURCHASE REQUEST SYSTEM</h1>
+
+    <div class="conn-bar">
+        <div class="dot" id="connDot"></div>
+        <span class="msg" id="connMsg">Not connected yet — click Test Connection.</span>
+        <button type="button" class="btn btn-small" onclick="window.testConnection()">🔌 Test Connection</button>
+    </div>
+
+    <div class="subtab-nav">
+        <button type="button" class="subtab-btn active" id="tabBtn-pr" onclick="switchSubtab('pr')">📄 Generate PR</button>
+        <button type="button" class="subtab-btn" id="tabBtn-personnel" onclick="switchSubtab('personnel')">🧑‍💼 Personnel</button>
+    </div>
+
+    <!-- ============ STEP 4: GENERATE PURCHASE REQUEST ============ -->
+    <div id="view-pr" class="subtab-view active">
+        <div class="ms-lookup">
+            <h4>📄 Load a Quoted Market Survey to generate its Purchase Request</h4>
+            <div class="ms-lookup-row">
+                <input type="text" id="prMsSearch" placeholder="e.g., MS-20260827-1234">
+                <button type="button" class="btn btn-accent btn-small" onclick="loadForPR()">Load</button>
+                <button type="button" class="btn btn-secondary btn-small" onclick="toggleBrowsePR()">📂 Browse Quoted Surveys</button>
+            </div>
+            <div id="browseListPR" class="browse-list"></div>
+        </div>
+
+        <div id="prSummary" class="summary-box"></div>
+
+        <div id="prBody" style="display:none;">
+            <div class="form-section">
+                <h3>Purchase Request Details</h3>
+                <div class="form-group"><label>PR No.:</label><input type="text" id="prNumber" readonly style="background:#e9ecef;"></div>
+                <div class="form-group"><label>Date:</label><input type="date" id="prDate"></div>
+                <div class="form-group"><label>Entity Name:</label><input type="text" id="prEntityName" value="Department of Agriculture - Regional Field Office No. 1"></div>
+                <div class="form-group"><label>Fund Cluster:</label><input type="text" id="prFundCluster" placeholder="e.g., 01 - Regular Agency Fund"></div>
+                <div class="form-group"><label>Office/Section:</label><input type="text" id="prOffice" value="General Services Section"></div>
+                <div class="form-group"><label>Resp. Center Code:</label><input type="text" id="prRespCenter" placeholder="e.g., 1234567"></div>
+                <div class="form-group">
+                    <label>Purpose:</label>
+                    <textarea id="prPurpose" rows="3"></textarea>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Items <span style="font-size:12px; font-weight:normal; color:#6c757d;">— Unit Cost is the Average Price from the encoded quotes; you can still adjust before saving</span></h3>
+                <div class="row-header" style="grid-template-columns:70px 50px 50px 1fr 90px 100px;">
+                    <span>Stock No.</span><span>Qty</span><span>Unit</span><span>Item Description</span><span>Unit Cost (Avg)</span><span>Total Cost</span>
+                </div>
+                <div id="prItems"></div>
+                <div style="text-align:right; margin-top:10px; font-weight:bold; font-size:15px;">Grand Total: ₱<span id="prGrandTotal">0.00</span></div>
+            </div>
+
+            <div class="form-section">
+                <h3>Requested / Approved By <span style="font-size:12px; font-weight:normal; color:#6c757d;">— choose from Personnel; enroll new names in the Personnel tab</span></h3>
+                <div class="form-group">
+                    <label>Requested By:</label>
+                    <select id="prReqSelect" onchange="applyPersonnelSelection('req', this.value)">
+                        <option value="">-- Select Requisitioner --</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Requested By (Designation):</label><input type="text" id="prReqDesignation" readonly style="background:#e9ecef;"></div>
+                <input type="hidden" id="prReqName">
+
+                <div class="form-group">
+                    <label>Approved By:</label>
+                    <select id="prApprSelect" onchange="applyPersonnelSelection('appr', this.value)">
+                        <option value="">-- Select Approver --</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Approved By (Designation):</label><input type="text" id="prApprDesignation" readonly style="background:#e9ecef;"></div>
+                <input type="hidden" id="prApprName">
+            </div>
+
+            <div class="form-section">
+                <h3>Verification &amp; Funding</h3>
+                <div class="form-group"><label>Verified by (Name):</label><input type="text" id="prVerName"></div>
+                <div class="form-group"><label>Verified by (Designation):</label><input type="text" id="prVerDesignation" value="Verified as included in APP"></div>
+                <div class="form-group"><label>Funding Information:</label><textarea id="prFunding" rows="2" placeholder="e.g., GASS&#10;GAA FY 2026&#10;RA12314"></textarea></div>
+                <div class="form-group"><label>Bac Sec. Chairperson:</label><input type="text" id="prBacChair"></div>
+                <div class="form-group"><label>Bac Sec. Designation:</label><input type="text" id="prBacChairDesignation" value="Chairperson, Bac Secretariat"></div>
+                <div class="form-group"><label>Budget Section Chief:</label><input type="text" id="prBudgetChief"></div>
+                <div class="form-group"><label>Budget Chief Designation:</label><input type="text" id="prBudgetChiefDesignation" value="Chief, Budget Section"></div>
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="btn btn-accent" id="prBtn" onclick="submitPR()">💾 Save Purchase Request</button>
+                <button type="button" class="btn btn-print" onclick="printPR()">🖨️ Print PR</button>
+                <button type="button" class="btn btn-info" onclick="downloadPRExcel()">⬇️ Download as Excel</button>
+            </div>
+        </div>
+
+        <div id="prStatus" class="status-message"></div>
+    </div>
+    <!-- ============ STEP 5: PERSONNEL MANAGEMENT ============ -->
+    <div id="view-personnel" class="subtab-view">
+        <div class="form-section">
+            <h3>🧑‍💼 Enroll a Requisitioner / Approver</h3>
+            <div class="form-group"><label>Full Name:</label><input type="text" id="personName" placeholder="e.g., Deo G. Rivera"></div>
+            <div class="form-group"><label>Designation:</label><input type="text" id="personDesignation" placeholder="e.g., Administrative Officer V"></div>
+            <div class="form-group">
+                <label>Role:</label>
+                <select id="personRole">
+                    <option value="Requisitioner">Requisitioner (appears under Requested by)</option>
+                    <option value="Approver">Approver (appears under Approved by)</option>
+                    <option value="Both">Both</option>
+                </select>
+            </div>
+            <button type="button" class="btn btn-accent btn-small" onclick="submitPersonnel()">💾 Save Personnel</button>
+            <div id="personnelStatus" class="status-message"></div>
+        </div>
+
+        <div class="form-section">
+            <h3>Enrolled Personnel</h3>
+            <button type="button" class="btn btn-info btn-small" onclick="loadPersonnelList()">🔄 Refresh List</button>
+            <span style="font-size:12px; color:#6c757d; margin-left:10px;">These names populate the "Requested by" / "Approved by" dropdowns on the Generate PR tab.</span>
+            <div id="personnelListBox" style="max-height:500px; overflow-y:auto; border:1px solid #dee2e6; border-radius:4px; margin-top:10px;">
+                <div style="padding:20px; text-align:center; color:#6c757d;">Click "Refresh List" to load personnel.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="printArea"></div>
+<script>
+// ============================================
+// CONFIG — shared backend for all pages
+// ============================================
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6kAJwGQFQDAJEEr12-akXxBTqwgTyVQb7yD13OjePUGN4AQeZTG1XbRFj7EDLr7ikyg/exec';
+
+// ============================================
+// GLOBAL VARIABLES
+// ============================================
+let personnelData = [];
+let prSurveyData = null;
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+function escapeHtml(str) {
+    if (str == null) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+}
+
+function statusPill(status) {
+    return status === 'Quoted'
+        ? '<span class="status-pill quoted">Quoted</span>'
+        : '<span class="status-pill pending">Pending Quotes</span>';
+}
+
+// ============================================
+// CONNECTION TEST
+// ============================================
+window.testConnection = async function() {
+    const dot = document.getElementById('connDot');
+    const msg = document.getElementById('connMsg');
+    dot.className = 'dot';
+    msg.textContent = 'Testing connection to server...';
+    console.log('Testing connection to:', SCRIPT_URL);
+    
+    try {
+        const res = await fetch(SCRIPT_URL, {
+            method: 'GET',
+            mode: 'cors',
+            headers: { 'Accept': 'application/json' }
+        });
+        
+        if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + res.statusText);
+        
+        const data = await res.json();
+        
+        if (data.success && data.status === 'Online') {
+            dot.className = 'dot ok';
+            msg.textContent = '✅ Connected — spreadsheet ' + data.spreadsheetId;
+            loadPersonnel();
+        } else {
+            dot.className = 'dot bad';
+            msg.textContent = '⚠️ Unexpected response: ' + JSON.stringify(data);
+        }
+    } catch (err) {
+        console.error('Connection error:', err);
+        dot.className = 'dot bad';
+        msg.textContent = '❌ ' + err.message + ' (Check console for details)';
+    }
+};
+
+window.addEventListener('DOMContentLoaded', function() {
+    setTimeout(window.testConnection, 500);
+});
+
+// ============================================
+// TAB SWITCHING
+// ============================================
+function switchSubtab(tab) {
+    document.getElementById('view-pr').classList.toggle('active', tab === 'pr');
+    document.getElementById('view-personnel').classList.toggle('active', tab === 'personnel');
+    document.getElementById('tabBtn-pr').classList.toggle('active', tab === 'pr');
+    document.getElementById('tabBtn-personnel').classList.toggle('active', tab === 'personnel');
+    
+    if (tab === 'personnel') {
+        loadPersonnelList();
+    }
+}
+
+// ============================================
+// PRINT
+// ============================================
+// ============================================
+// OFFICIAL LETTERHEAD (replace with your own logo/seal images)
+// Paste a base64 data URI ("data:image/png;base64,...") or a hosted
+// image URL for each. Leave blank ('') to show no image in that slot.
+// ============================================
+const DA_LOGO_URL = '';   // Department of Agriculture seal (left)
+const ISO_LOGO_URL = '';  // Certification International ISO 9001:2015 badge
+const PAB_LOGO_URL = '';  // PAB Accreditation badge
+
+function buildLetterheadHtml() {
+    const logoImg = DA_LOGO_URL ? `<img src="${DA_LOGO_URL}" alt="DA Logo">` : '';
+    const isoImg = ISO_LOGO_URL ? `<img src="${ISO_LOGO_URL}" alt="ISO 9001:2015">` : '';
+    const pabImg = PAB_LOGO_URL ? `<img src="${PAB_LOGO_URL}" alt="PAB Accredited">` : '';
+    return `
+        <div class="print-header">
+            <div class="logo-box">${logoImg}</div>
+            <div class="header-text">
+                <div>Republic of the Philippines</div>
+                <div class="dept-name">DEPARTMENT OF AGRICULTURE</div>
+                <div>Regional Field Office No. 1</div>
+                <div>Aguila Road, Sevilla, City of San Fernando, La Union</div>
+                <div>Telephone No. (072) 242 1045/1046</div>
+            </div>
+            <div class="seal-group">
+                <div class="logo-box">${isoImg}</div>
+                <div class="logo-box">${pabImg}</div>
+            </div>
+        </div>
+    `;
+}
+// ============================================
+// PERSONNEL (Requisitioners / Approvers)
+// ============================================
+async function loadPersonnel() {
+    try {
+        const res = await fetch(SCRIPT_URL + '?action=getPersonnel');
+        const data = await res.json();
+        if (data.success) {
+            personnelData = data.personnel || [];
+            populatePersonnelDropdowns();
+        }
+    } catch (err) {
+        console.error('loadPersonnel error:', err);
+    }
+}
+
+function populatePersonnelDropdowns() {
+    const reqSelect = document.getElementById('prReqSelect');
+    const apprSelect = document.getElementById('prApprSelect');
+    if (!reqSelect || !apprSelect) return;
+
+    const reqCurrent = reqSelect.value;
+    const apprCurrent = apprSelect.value;
+
+    reqSelect.innerHTML = '<option value="">-- Select Requisitioner --</option>';
+    apprSelect.innerHTML = '<option value="">-- Select Approver --</option>';
+
+    personnelData.forEach(p => {
+        if (p.role === 'Requisitioner' || p.role === 'Both') {
+            const opt = document.createElement('option');
+            opt.value = p.name;
+            opt.textContent = p.name + ' — ' + p.designation;
+            reqSelect.appendChild(opt);
+        }
+        if (p.role === 'Approver' || p.role === 'Both') {
+            const opt2 = document.createElement('option');
+            opt2.value = p.name;
+            opt2.textContent = p.name + ' — ' + p.designation;
+            apprSelect.appendChild(opt2);
+        }
+    });
+
+    if (reqCurrent) reqSelect.value = reqCurrent;
+    if (apprCurrent) apprSelect.value = apprCurrent;
+}
+
+function applyPersonnelSelection(which, name) {
+    const person = personnelData.find(p => p.name === name);
+    if (which === 'req') {
+        document.getElementById('prReqName').value = name;
+        document.getElementById('prReqDesignation').value = person ? person.designation : '';
+    } else if (which === 'appr') {
+        document.getElementById('prApprName').value = name;
+        document.getElementById('prApprDesignation').value = person ? person.designation : '';
+    }
+}
+
+function trySelectRequisitioner(endUserName) {
+    const select = document.getElementById('prReqSelect');
+    if (!select || !endUserName) return;
+    const match = personnelData.find(p => p.name.toLowerCase().trim() === endUserName.toLowerCase().trim());
+    if (match) {
+        select.value = match.name;
+        applyPersonnelSelection('req', match.name);
+    }
+}
+
+function showPersonnelStatus(msg, type) {
+    const el = document.getElementById('personnelStatus');
+    el.textContent = msg;
+    el.className = 'status-message ' + type;
+}
+
+async function submitPersonnel() {
+    const name = document.getElementById('personName').value.trim();
+    const designation = document.getElementById('personDesignation').value.trim();
+    const role = document.getElementById('personRole').value;
+
+    if (!name || !designation) {
+        showPersonnelStatus('Please fill in name and designation.', 'error');
+        return;
+    }
+
+    showPersonnelStatus('Saving...', 'info');
+    try {
+        const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'addPersonnel', name: name, designation: designation, role: role })
+        });
+        const result = await res.json();
+        if (result.success) {
+            showPersonnelStatus('✅ Saved ' + name + '.', 'success');
+            document.getElementById('personName').value = '';
+            document.getElementById('personDesignation').value = '';
+            await loadPersonnel();
+            loadPersonnelList();
+        } else {
+            showPersonnelStatus('❌ ' + (result.error || 'Unknown error'), 'error');
+        }
+    } catch (err) {
+        showPersonnelStatus('❌ ' + err.message, 'error');
+    }
+}
+
+async function loadPersonnelList() {
+    const box = document.getElementById('personnelListBox');
+    box.innerHTML = '<div style="padding:20px; text-align:center; color:#6c757d;">Loading...</div>';
+    try {
+        const res = await fetch(SCRIPT_URL + '?action=getPersonnel');
+        const data = await res.json();
+        if (!data.success || !data.personnel || data.personnel.length === 0) {
+            box.innerHTML = '<div style="padding:20px; text-align:center; color:#6c757d;">No personnel enrolled yet.</div>';
+            return;
+        }
+        personnelData = data.personnel;
+        populatePersonnelDropdowns();
+        box.innerHTML = data.personnel.map(p => `
+            <div style="padding:10px 14px; border-bottom:1px solid #eee;">
+                <strong>${escapeHtml(p.name)}</strong> <span style="font-size:11px; color:#6c757d;">(${escapeHtml(p.role)})</span><br>
+                <span style="font-size:12px; color:#555;">${escapeHtml(p.designation)}</span>
+            </div>
+        `).join('');
+    } catch (err) {
+        box.innerHTML = '<div style="padding:20px; text-align:center; color:#dc3545;">❌ ' + err.message + '</div>';
+    }
+}
+// ============================================
+// STEP 4: GENERATE PURCHASE REQUEST
+// ============================================
+function generatePRNumber() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const rnd = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    return `PR-${y}${m}${day}-${rnd}`;
+}
+
+function showPRStatus(msg, type) {
+    const el = document.getElementById('prStatus');
+    el.textContent = msg;
+    el.className = 'status-message ' + type;
+}
+
+async function loadForPR() {
+    const msNumber = document.getElementById('prMsSearch').value.trim();
+    if (!msNumber) { showPRStatus('Enter a Market Survey number.', 'error'); return; }
+    await fetchForPR(msNumber);
+}
+
+async function fetchForPR(msNumber) {
+    showPRStatus('Loading ' + msNumber + '...', 'info');
+    try {
+        const res = await fetch(SCRIPT_URL + '?action=getSurvey&msNumber=' + encodeURIComponent(msNumber));
+        const data = await res.json();
+
+        if (!data.success) {
+            showPRStatus('❌ ' + (data.error || 'Not found'), 'error');
+            document.getElementById('prBody').style.display = 'none';
+            document.getElementById('prSummary').classList.remove('visible');
+            return;
+        }
+
+        if (data.status !== 'Quoted') {
+            showPRStatus('⚠️ This survey is not yet "Quoted" — encode the 3 supplier quotes first so an average price is available.', 'error');
+            document.getElementById('prBody').style.display = 'none';
+            document.getElementById('prSummary').classList.remove('visible');
+            return;
+        }
+
+        prSurveyData = data;
+
+        const summary = document.getElementById('prSummary');
+        summary.innerHTML = `
+            <strong>${escapeHtml(data.msNumber)}</strong> ${statusPill(data.status)}<br>
+            ${escapeHtml(data.dateAccomplished)} · ${escapeHtml(data.endUser)}<br>
+            <strong>Items:</strong> ${data.items.length}
+            <span style="font-size:11px; color:#6c757d;">(${data.items.filter(i => !i.isHeader).length} actual items)</span>
+        `;
+        summary.classList.add('visible');
+
+        document.getElementById('prNumber').value = generatePRNumber();
+        document.getElementById('prDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('prPurpose').value = data.purpose || '';
+        trySelectRequisitioner(data.endUser);
+
+        renderPRItems(data.items);
+
+        document.getElementById('prBody').style.display = 'block';
+        showPRStatus(`✅ Loaded ${data.items.length} item(s). Unit Cost prefilled from the average of the 3 supplier quotes.`, 'success');
+        document.getElementById('browseListPR').classList.remove('visible');
+
+    } catch (err) {
+        showPRStatus('❌ ' + err.message, 'error');
+    }
+}
+
+function renderPRItems(items) {
+    const container = document.getElementById('prItems');
+    container.innerHTML = '';
+    items.forEach((it) => {
+        const row = document.createElement('div');
+        if (it.isHeader) {
+            row.className = 'edit-row is-header-row';
+            row.style.gridTemplateColumns = '70px 50px 50px 1fr 90px 100px';
+            row.innerHTML = `
+                <input type="hidden" class="pr-is-header" value="1">
+                <div></div><div></div><div></div>
+                <input type="text" class="pr-desc" value="${escapeHtml(it.description)}" style="font-weight:700;">
+                <div></div><div></div>
+            `;
+        } else {
+            row.className = 'edit-row existing-item';
+            row.style.gridTemplateColumns = '70px 50px 50px 1fr 90px 100px';
+            const avg = parseFloat(it.avgUnitPrice) || 0;
+            row.innerHTML = `
+                <input type="hidden" class="pr-is-header" value="0">
+                <input type="text" class="pr-stock" value="${escapeHtml(it.stockNo || '')}" placeholder="Stock No.">
+                <input type="number" class="pr-qty" value="${escapeHtml(it.quantity)}" min="0" step="0.01" oninput="updatePRRowTotal(this)">
+                <input type="text" class="pr-unit" value="${escapeHtml(it.unit)}" placeholder="Unit">
+                <input type="text" class="pr-desc" value="${escapeHtml(it.description)}" placeholder="Item description">
+                <input type="number" class="pr-cost" value="${avg.toFixed(2)}" min="0" step="0.01" oninput="updatePRRowTotal(this)">
+                <input type="text" class="pr-total" value="${(avg * (parseFloat(it.quantity) || 0)).toFixed(2)}" readonly style="background:#eef6ee; font-weight:700;">
+            `;
+        }
+        container.appendChild(row);
+    });
+    updatePRGrandTotal();
+}
+
+function updatePRRowTotal(el) {
+    const row = el.closest('.edit-row');
+    const qty = parseFloat(row.querySelector('.pr-qty').value) || 0;
+    const cost = parseFloat(row.querySelector('.pr-cost').value) || 0;
+    row.querySelector('.pr-total').value = (qty * cost).toFixed(2);
+    updatePRGrandTotal();
+}
+
+function updatePRGrandTotal() {
+    let total = 0;
+    document.querySelectorAll('#prItems .pr-total').forEach(inp => {
+        total += parseFloat(inp.value) || 0;
+    });
+    document.getElementById('prGrandTotal').textContent = total.toFixed(2);
+}
+
+function collectPRItems() {
+    const items = [];
+    document.querySelectorAll('#prItems > div').forEach(row => {
+        const isHeader = row.querySelector('.pr-is-header').value === '1';
+        const desc = row.querySelector('.pr-desc').value.trim();
+        if (!desc) return;
+        if (isHeader) {
+            items.push({ stockNo: '', quantity: 0, unit: '', description: desc, unitCost: 0, totalCost: 0, isHeader: true });
+        } else {
+            const qty = parseFloat(row.querySelector('.pr-qty').value) || 0;
+            const cost = parseFloat(row.querySelector('.pr-cost').value) || 0;
+            items.push({
+                stockNo: row.querySelector('.pr-stock').value.trim(),
+                quantity: qty,
+                unit: row.querySelector('.pr-unit').value.trim(),
+                description: desc,
+                unitCost: cost,
+                totalCost: qty * cost,
+                isHeader: false
+            });
+        }
+    });
+    return items;
+}
+
+function collectPRData() {
+    const items = collectPRItems();
+    const grandTotal = items.reduce((sum, it) => sum + (it.totalCost || 0), 0);
+    return {
+        prNumber: document.getElementById('prNumber').value,
+        date: document.getElementById('prDate').value,
+        entityName: document.getElementById('prEntityName').value.trim(),
+        fundCluster: document.getElementById('prFundCluster').value.trim(),
+        office: document.getElementById('prOffice').value.trim(),
+        respCenter: document.getElementById('prRespCenter').value.trim(),
+        msNumber: prSurveyData ? prSurveyData.msNumber : '',
+        purpose: document.getElementById('prPurpose').value.trim(),
+        reqName: document.getElementById('prReqName').value.trim(),
+        reqDesignation: document.getElementById('prReqDesignation').value.trim(),
+        apprName: document.getElementById('prApprName').value.trim(),
+        apprDesignation: document.getElementById('prApprDesignation').value.trim(),
+        verName: document.getElementById('prVerName').value.trim(),
+        verDesignation: document.getElementById('prVerDesignation').value.trim(),
+        funding: document.getElementById('prFunding').value.trim(),
+        bacChair: document.getElementById('prBacChair').value.trim(),
+        bacChairDesignation: document.getElementById('prBacChairDesignation').value.trim(),
+        budgetChief: document.getElementById('prBudgetChief').value.trim(),
+        budgetChiefDesignation: document.getElementById('prBudgetChiefDesignation').value.trim(),
+        items: items,
+        grandTotal: grandTotal
+    };
+}
+
+async function submitPR() {
+    if (!prSurveyData) { alert('Load a Quoted Market Survey first.'); return; }
+    const prData = collectPRData();
+
+    if (prData.items.filter(i => !i.isHeader).length === 0) {
+        showPRStatus('No items to save.', 'error');
+        return;
+    }
+
+    const payload = Object.assign({ action: 'createPurchaseRequest' }, prData);
+
+    const btn = document.getElementById('prBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    showPRStatus('Saving Purchase Request to Google Sheets...', 'info');
+
+    try {
+        const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+
+        if (result.success) {
+            showPRStatus(`✅ Saved! ${result.prNumber} recorded with ${result.itemsAdded} item(s).`, 'success');
+        } else {
+            showPRStatus('❌ ' + (result.error || 'Unknown error'), 'error');
+        }
+    } catch (err) {
+        showPRStatus('❌ ' + err.message, 'error');
+    }
+
+    btn.disabled = false;
+    btn.textContent = '💾 Save Purchase Request';
+}
+
+async function toggleBrowsePR() {
+    const list = document.getElementById('browseListPR');
+    if (list.classList.contains('visible')) { list.classList.remove('visible'); return; }
+    list.innerHTML = '<div class="browse-item">Loading...</div>';
+    list.classList.add('visible');
+    try {
+        const res = await fetch(SCRIPT_URL + '?action=listSurveys');
+        const data = await res.json();
+        const quoted = (data.surveys || []).filter(s => s.status === 'Quoted');
+        if (!data.success || quoted.length === 0) {
+            list.innerHTML = '<div class="browse-item">No Quoted Market Surveys yet.</div>';
+            return;
+        }
+        list.innerHTML = '';
+        quoted.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'browse-item';
+            div.innerHTML = `<div><strong>${escapeHtml(s.msNumber)}</strong> ${statusPill(s.status)}</div><div style="color:#6c757d;font-size:12px;">${escapeHtml(s.dateAccomplished)} · ${escapeHtml(s.endUser)} — ${escapeHtml((s.purpose||'').substring(0,60))}</div>`;
+            div.onclick = () => { document.getElementById('prMsSearch').value = s.msNumber; fetchForPR(s.msNumber); };
+            list.appendChild(div);
+        });
+    } catch (err) {
+        list.innerHTML = '<div class="browse-item">❌ ' + err.message + '</div>';
+    }
+}
+
+// ---- PR Print ----
+function buildPRPrintCopy(prData) {
+    let rows = '';
+    prData.items.forEach(it => {
+        if (it.isHeader) {
+            rows += `<tr class="section-header"><td colspan="6">${escapeHtml(it.description)}</td></tr>`;
+        } else {
+            rows += `<tr>
+                <td style="text-align:center;">${escapeHtml(it.stockNo || '')}</td>
+                <td style="text-align:center;">${escapeHtml(it.unit)}</td>
+                <td>${escapeHtml(it.description)}</td>
+                <td style="text-align:center;">${escapeHtml(it.quantity)}</td>
+                <td style="text-align:right;">${(parseFloat(it.unitCost)||0).toFixed(2)}</td>
+                <td style="text-align:right;">${(parseFloat(it.totalCost)||0).toFixed(2)}</td>
+            </tr>`;
+        }
+    });
+
+    return `
+        <div class="pr-copy">
+            ${buildLetterheadHtml()}
+            <div class="pr-title">PURCHASE REQUEST</div>
+            <div class="pr-topline">
+                <div class="field"><strong>Entity Name:</strong> ${escapeHtml(prData.entityName)}</div>
+                <div class="field"><strong>Fund Cluster:</strong> ${escapeHtml(prData.fundCluster)}</div>
+            </div>
+            <div class="pr-meta-row">
+                <div class="field"><strong>Office/Section:</strong> ${escapeHtml(prData.office)}</div>
+                <div class="field"><strong>PR No.:</strong> ${escapeHtml(prData.prNumber)}</div>
+                <div class="field"><strong>Date:</strong> ${escapeHtml(prData.date)}</div>
+            </div>
+            <div class="pr-meta-row">
+                <div class="field"><strong>Responsibility Center Code:</strong> ${escapeHtml(prData.respCenter)}</div>
+            </div>
+
+            <table class="pr-table">
+                <thead><tr>
+                    <th style="width:80px;">Stock/Property No.</th>
+                    <th style="width:50px;">Unit</th>
+                    <th>Item Description</th>
+                    <th style="width:60px;">Quantity</th>
+                    <th style="width:80px;">Unit Cost</th>
+                    <th style="width:90px;">Total Cost</th>
+                </tr></thead>
+                <tbody>
+                    ${rows}
+                    <tr class="pr-grand-total"><td colspan="5">Grand Total :</td><td>${(parseFloat(prData.grandTotal)||0).toFixed(2)}</td></tr>
+                </tbody>
+            </table>
+
+            <div class="pr-purpose"><strong>Purpose:</strong> ${escapeHtml(prData.purpose).replace(/\n/g, '<br>')}</div>
+
+            <div class="pr-signblock">
+                <div class="col">
+                    <div style="font-weight:bold;">Requested by:</div>
+                    <div class="sig-line" style="margin-top:20px;"></div>
+                    <div class="sig-label">Signature</div>
+                    <div class="name">${escapeHtml(prData.reqName)}</div>
+                    <div class="designation">${escapeHtml(prData.reqDesignation)}</div>
+                </div>
+                <div class="col">
+                    <div style="font-weight:bold;">Approved by:</div>
+                    <div class="sig-line" style="margin-top:20px;"></div>
+                    <div class="sig-label">Signature</div>
+                    <div class="name">${escapeHtml(prData.apprName)}</div>
+                    <div class="designation">${escapeHtml(prData.apprDesignation)}</div>
+                </div>
+            </div>
+
+            <div class="pr-verify-block">
+                <div class="col">
+                    <div style="font-weight:bold;">${escapeHtml(prData.verDesignation || 'Verified as included in APP')} :</div>
+                    <div class="sig-line" style="margin-top:20px;"></div>
+                    <div class="name">${escapeHtml(prData.verName)}</div>
+                </div>
+                <div class="col">
+                    <div style="font-weight:bold;">Funding Information:</div>
+                    <div style="white-space:pre-wrap; margin-top:6px;">${escapeHtml(prData.funding)}</div>
+                </div>
+            </div>
+
+            <div class="pr-signblock" style="margin-top:26px;">
+                <div class="col">
+                    <div class="sig-line"></div>
+                    <div class="name">${escapeHtml(prData.bacChair)}</div>
+                    <div class="designation">${escapeHtml(prData.bacChairDesignation)}</div>
+                </div>
+                <div class="col">
+                    <div class="sig-line"></div>
+                    <div class="name">${escapeHtml(prData.budgetChief)}</div>
+                    <div class="designation">${escapeHtml(prData.budgetChiefDesignation)}</div>
+                </div>
+            </div>
+
+            <div class="pr-vts">VTS No. ______________________________</div>
+        </div>
+    `;
+}
+
+function printPR() {
+    if (!prSurveyData) { alert('Load a Quoted Market Survey first.'); return; }
+    const prData = collectPRData();
+    document.getElementById('printArea').innerHTML = buildPRPrintCopy(prData);
+    window.print();
+}
+
+// ---- PR Excel Download ----
+async function downloadPRExcel() {
+    if (!prSurveyData) { alert('Load a Quoted Market Survey first.'); return; }
+    if (typeof ExcelJS === 'undefined') { alert('Excel library failed to load. Check your internet connection and try again.'); return; }
+
+    const prData = collectPRData();
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Purchase Request', { pageSetup: { paperSize: 9, orientation: 'portrait' } });
+
+    ws.columns = [
+        { width: 16 }, { width: 10 }, { width: 34 }, { width: 24 }, { width: 12 }, { width: 14 }, { width: 16 }
+    ];
+
+    const thin = { style: 'thin' };
+    const allBorders = { top: thin, left: thin, bottom: thin, right: thin };
+    const centerMid = { horizontal: 'center', vertical: 'middle', wrapText: true };
+
+    let r = 1;
+    ws.mergeCells(`A${r}:G${r}`);
+    ws.getCell(`A${r}`).value = 'PURCHASE REQUEST';
+    ws.getCell(`A${r}`).font = { bold: true, size: 20 };
+    ws.getCell(`A${r}`).alignment = { horizontal: 'center' };
+    r += 2;
+
+    ws.getCell(`A${r}`).value = 'Entity Name:';
+    ws.getCell(`A${r}`).font = { bold: true };
+    ws.mergeCells(`B${r}:D${r}`);
+    ws.getCell(`B${r}`).value = prData.entityName;
+    ws.getCell(`E${r}`).value = 'Fund Cluster:';
+    ws.getCell(`E${r}`).font = { bold: true };
+    ws.mergeCells(`F${r}:G${r}`);
+    ws.getCell(`F${r}`).value = prData.fundCluster;
+    r++;
+
+    ws.getCell(`A${r}`).value = 'Office/Section:';
+    ws.getCell(`A${r}`).font = { bold: true };
+    ws.mergeCells(`B${r}:C${r}`);
+    ws.getCell(`B${r}`).value = prData.office;
+    ws.getCell(`D${r}`).value = 'PR No.:';
+    ws.getCell(`D${r}`).font = { bold: true };
+    ws.getCell(`E${r}`).value = prData.prNumber;
+    ws.getCell(`F${r}`).value = 'Date:';
+    ws.getCell(`F${r}`).font = { bold: true };
+    ws.getCell(`G${r}`).value = prData.date;
+    r++;
+
+    ws.getCell(`A${r}`).value = 'Responsibility Center Code:';
+    ws.getCell(`A${r}`).font = { bold: true };
+    ws.mergeCells(`B${r}:D${r}`);
+    ws.getCell(`B${r}`).value = prData.respCenter;
+    r += 2;
+
+    const headerRow = r;
+    const headers = ['Stock/Property No.', 'Unit', 'Item Description', '', 'Quantity', 'Unit Cost', 'Total Cost'];
+    headers.forEach((h, i) => {
+        const cell = ws.getCell(headerRow, i + 1);
+        cell.value = h;
+        cell.font = { bold: true };
+        cell.alignment = centerMid;
+        cell.border = allBorders;
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEEEEEE' } };
+    });
+    ws.mergeCells(`C${headerRow}:D${headerRow}`);
+    r++;
+
+    prData.items.forEach(it => {
+        if (it.isHeader) {
+            ws.mergeCells(`A${r}:G${r}`);
+            const cell = ws.getCell(`A${r}`);
+            cell.value = it.description;
+            cell.font = { bold: true };
+            cell.border = allBorders;
+        } else {
+            ws.mergeCells(`C${r}:D${r}`);
+            const cells = [
+                ['A', it.stockNo, 'center'],
+                ['B', it.unit, 'center'],
+                ['C', it.description, 'left'],
+                ['E', it.quantity, 'center'],
+                ['F', parseFloat(it.unitCost) || 0, 'right'],
+                ['G', parseFloat(it.totalCost) || 0, 'right']
+            ];
+            cells.forEach(([col, val, align]) => {
+                const cell = ws.getCell(`${col}${r}`);
+                cell.value = val;
+                cell.alignment = { horizontal: align, vertical: 'middle' };
+                cell.border = allBorders;
+                if (col === 'F' || col === 'G') cell.numFmt = '#,##0.00';
+            });
+        }
+        r++;
+    });
+
+    ws.mergeCells(`A${r}:E${r}`);
+    ws.getCell(`A${r}`).value = 'Grand Total :';
+    ws.getCell(`A${r}`).font = { bold: true };
+    ws.getCell(`A${r}`).alignment = { horizontal: 'right' };
+    ws.getCell(`A${r}`).border = allBorders;
+    const gtCell = ws.getCell(`G${r}`);
+    gtCell.value = parseFloat(prData.grandTotal) || 0;
+    gtCell.numFmt = '#,##0.00';
+    gtCell.font = { bold: true };
+    gtCell.border = allBorders;
+    ws.getCell(`F${r}`).border = allBorders;
+    r += 2;
+
+    ws.mergeCells(`A${r}:G${r}`);
+    ws.getCell(`A${r}`).value = 'Purpose: ' + prData.purpose;
+    ws.getCell(`A${r}`).alignment = { wrapText: true, vertical: 'top' };
+    ws.getRow(r).height = 40;
+    r += 2;
+
+    ws.getCell(`A${r}`).value = 'Requested by:';
+    ws.getCell(`A${r}`).font = { bold: true };
+    ws.getCell(`E${r}`).value = 'Approved by:';
+    ws.getCell(`E${r}`).font = { bold: true };
+    r += 3;
+
+    ws.mergeCells(`A${r}:C${r}`);
+    ws.getCell(`A${r}`).border = { bottom: thin };
+    ws.mergeCells(`E${r}:G${r}`);
+    ws.getCell(`E${r}`).border = { bottom: thin };
+    r++;
+
+    ws.mergeCells(`A${r}:C${r}`);
+    ws.getCell(`A${r}`).value = prData.reqName;
+    ws.getCell(`A${r}`).font = { bold: true };
+    ws.getCell(`A${r}`).alignment = { horizontal: 'center' };
+    ws.mergeCells(`E${r}:G${r}`);
+    ws.getCell(`E${r}`).value = prData.apprName;
+    ws.getCell(`E${r}`).font = { bold: true };
+    ws.getCell(`E${r}`).alignment = { horizontal: 'center' };
+    r++;
+
+    ws.mergeCells(`A${r}:C${r}`);
+    ws.getCell(`A${r}`).value = prData.reqDesignation;
+    ws.getCell(`A${r}`).alignment = { horizontal: 'center' };
+    ws.mergeCells(`E${r}:G${r}`);
+    ws.getCell(`E${r}`).value = prData.apprDesignation;
+    ws.getCell(`E${r}`).alignment = { horizontal: 'center' };
+    r += 3;
+
+    ws.getCell(`A${r}`).value = (prData.verDesignation || 'Verified as included in APP') + ':';
+    ws.getCell(`A${r}`).font = { bold: true };
+    ws.getCell(`E${r}`).value = 'Funding Information:';
+    ws.getCell(`E${r}`).font = { bold: true };
+    r++;
+
+    ws.mergeCells(`E${r}:G${r}`);
+    ws.getCell(`E${r}`).value = prData.funding;
+    ws.getCell(`E${r}`).alignment = { wrapText: true, vertical: 'top' };
+    ws.getRow(r).height = 40;
+    r += 3;
+
+    ws.mergeCells(`A${r}:C${r}`);
+    ws.getCell(`A${r}`).border = { bottom: thin };
+    ws.mergeCells(`E${r}:G${r}`);
+    ws.getCell(`E${r}`).border = { bottom: thin };
+    r++;
+
+    ws.mergeCells(`A${r}:C${r}`);
+    ws.getCell(`A${r}`).value = prData.bacChair;
+    ws.getCell(`A${r}`).font = { bold: true };
+    ws.getCell(`A${r}`).alignment = { horizontal: 'center' };
+    ws.mergeCells(`E${r}:G${r}`);
+    ws.getCell(`E${r}`).value = prData.budgetChief;
+    ws.getCell(`E${r}`).font = { bold: true };
+    ws.getCell(`E${r}`).alignment = { horizontal: 'center' };
+    r++;
+
+    ws.mergeCells(`A${r}:C${r}`);
+    ws.getCell(`A${r}`).value = prData.bacChairDesignation;
+    ws.getCell(`A${r}`).alignment = { horizontal: 'center' };
+    ws.mergeCells(`E${r}:G${r}`);
+    ws.getCell(`E${r}`).value = prData.budgetChiefDesignation;
+    ws.getCell(`E${r}`).alignment = { horizontal: 'center' };
+    r += 2;
+
+    ws.mergeCells(`A${r}:G${r}`);
+    ws.getCell(`A${r}`).value = 'VTS No. ______________________________';
+    ws.getCell(`A${r}`).alignment = { horizontal: 'right' };
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${prData.prNumber || 'Purchase-Request'}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>

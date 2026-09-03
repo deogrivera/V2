@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Survey — DA-RFO I</title>
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:#f0f4f8; padding:20px; }
+    .container { max-width:1100px; margin:0 auto; background:#fff; padding:30px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1); }
+    h1 { color:#1a3c6e; border-bottom:3px solid #1a3c6e; padding-bottom:10px; margin-bottom:20px; text-align:center; }
+
+    .conn-bar { display:flex; align-items:center; gap:10px; background:#f8f9fa; border:1px solid #dee2e6; border-radius:6px; padding:10px 15px; margin-bottom:20px; font-size:13px; }
+    .conn-bar .dot { width:10px; height:10px; border-radius:50%; background:#adb5bd; flex-shrink:0; }
+    .conn-bar .dot.ok { background:#28a745; }
+    .conn-bar .dot.bad { background:#dc3545; }
+    .conn-bar span.msg { flex:1; }
+
+    .subtab-nav { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
+    .subtab-btn { flex:1; min-width:100px; padding:12px; background:#fff; border:2px solid #d97706; color:#d97706; cursor:pointer; font-size:13px; font-weight:700; border-radius:6px; }
+    .subtab-btn.active { background:#d97706; color:#fff; }
+    .subtab-view { display:none; }
+    .subtab-view.active { display:block; }
+
+    .form-section { border:1px solid #dde1e6; padding:20px; margin-bottom:20px; border-radius:5px; background:#fafbfc; }
+    .form-section h3 { color:#1a3c6e; margin-bottom:15px; font-size:16px; border-left:4px solid #1a3c6e; padding-left:10px; }
+    .form-section.supplier-block { background:#fff; border:1px solid #c9d4e0; }
+    .form-section.supplier-block h3 { border-left-color:#d97706; }
+
+    .form-group { display:flex; flex-wrap:wrap; margin-bottom:12px; align-items:flex-start; }
+    .form-group label { width:180px; font-weight:600; color:#333; font-size:14px; padding-top:8px; }
+    .form-group input, .form-group textarea, .form-group select { flex:1; padding:8px 12px; border:1px solid #ccc; border-radius:4px; font-size:14px; min-width:200px; }
+    .form-group textarea { min-height:60px; resize:vertical; }
+    .form-group .help-text { font-size:11px; color:#6c757d; margin-left:180px; margin-top:4px; width:100%; }
+    .form-group .btn-small { margin-left:8px; }
+
+    .row-header, .draft-row, .encode-row, .edit-row { display:grid; gap:6px; margin-bottom:8px; align-items:center; }
+    .draft-row, .row-header.draft { grid-template-columns:60px 60px 80px 1fr 60px 100px 40px; }
+    .edit-row, .row-header.edit { grid-template-columns:60px 60px 80px 1fr 60px 100px 40px; }
+    .encode-row, .row-header.encode { grid-template-columns:60px 60px 70px 1fr 90px 90px 90px 90px; }
+    .row-header { font-weight:700; background:#e9ecef; padding:8px 4px; text-align:center; border-radius:4px; font-size:11px; color:#1a3c6e; }
+    .draft-row input, .encode-row input, .edit-row input { padding:6px 8px; border:1px solid #ccc; border-radius:4px; font-size:12px; width:100%; }
+    .draft-row input[type="checkbox"], .edit-row input[type="checkbox"] { width:20px; margin:0 auto; }
+    .draft-row .is-header-row, .edit-row .is-header-row { background:#f8f9fa; }
+    .encode-row input.avg { background:#eef6ee; font-weight:700; color:#1a6e3c; }
+    .edit-row .existing-item { background:#f0f8ff; }
+
+    .btn { background:#1a3c6e; color:#fff; padding:10px 20px; border:none; border-radius:5px; cursor:pointer; font-size:14px; font-weight:600; margin-right:10px; }
+    .btn:hover { background:#2a5a8e; }
+    .btn-success { background:#28a745; } .btn-success:hover { background:#218838; }
+    .btn-danger { background:#dc3545; } .btn-danger:hover { background:#c82333; }
+    .btn-accent { background:#d97706; } .btn-accent:hover { background:#b85f04; }
+    .btn-print { background:#17a2b8; } .btn-print:hover { background:#128294; }
+    .btn-secondary { background:#6c757d; } .btn-secondary:hover { background:#5a6268; }
+    .btn-warning { background:#ffc107; color:#212529; } .btn-warning:hover { background:#e0a800; }
+    .btn-info { background:#0dcaf0; color:#000; } .btn-info:hover { background:#0bb5d9; }
+    .btn:disabled { opacity:0.6; cursor:not-allowed; }
+    .btn-small { padding:6px 12px; font-size:12px; }
+    .btn-sm { padding:4px 10px; font-size:11px; }
+
+    .button-group { margin-top:20px; text-align:center; }
+
+    .status-message { padding:12px 15px; margin-top:15px; border-radius:5px; display:none; font-size:14px; }
+    .status-message.success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; display:block; }
+    .status-message.error { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; display:block; }
+    .status-message.info { background:#d1ecf1; color:#0c5460; border:1px solid #bee5eb; display:block; }
+
+    .ms-lookup { background:#fff8ec; border:1px dashed #d97706; border-radius:6px; padding:15px; margin-bottom:20px; }
+    .ms-lookup h4 { color:#b85f04; font-size:14px; margin-bottom:10px; }
+    .ms-lookup-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .ms-lookup-row input { flex:1; min-width:180px; padding:8px 12px; border:1px solid #ccc; border-radius:4px; font-size:14px; }
+
+    .browse-list { margin-top:10px; border:1px solid #eadfcb; border-radius:6px; background:#fff; max-height:220px; overflow-y:auto; display:none; }
+    .browse-list.visible { display:block; }
+    .browse-item { padding:10px 12px; border-bottom:1px solid #f0ede3; cursor:pointer; font-size:13px; }
+    .browse-item:last-child { border-bottom:none; }
+    .browse-item:hover { background:#fff8ec; }
+    .status-pill { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; margin-left:6px; }
+    .status-pill.pending { background:#fff3cd; color:#856404; }
+    .status-pill.quoted { background:#d4edda; color:#155724; }
+    .status-pill.editing { background:#cce5ff; color:#004085; }
+
+    .summary-box { background:#eef2f7; border-radius:6px; padding:12px 15px; margin-bottom:15px; font-size:13px; display:none; }
+    .summary-box.visible { display:block; }
+
+    .edit-badge { display:inline-block; background:#d97706; color:#fff; padding:2px 10px; border-radius:12px; font-size:10px; margin-left:8px; }
+
+    .supplier-select-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+    .supplier-select-row select { flex:1; padding:8px 12px; border:1px solid #ccc; border-radius:4px; font-size:13px; }
+    .supplier-select-row .btn-sm { white-space:nowrap; }
+
+    #printArea { display:none; }
+    @media print {
+        body * { visibility:hidden; }
+        #printArea, #printArea * { visibility:visible; }
+        #printArea { display:block; position:absolute; top:0; left:0; width:100%; }
+        .pr-copy { padding:25px; font-family:'Times New Roman',Times,serif; }
+        .pr-title { text-align:center; font-size:20px; font-weight:bold; margin:6px 0 14px; }
+        .pr-topline { display:flex; gap:20px; font-size:12px; margin-bottom:4px; }
+        .pr-topline .field { flex:1; }
+        .pr-topline .field strong { margin-right:4px; }
+        .pr-meta-row { display:flex; gap:20px; font-size:12px; margin-bottom:4px; }
+        .pr-meta-row .field { flex:1; }
+        .pr-table { width:100%; border-collapse:collapse; margin:14px 0; font-size:11px; }
+        .pr-table th, .pr-table td { border:1px solid #000; padding:5px; }
+        .pr-table th { background:#eee; text-align:center; font-weight:bold; }
+        .pr-table .section-header td { background:#f8f9fa; font-weight:bold; text-align:left; padding-left:10px; }
+        .pr-grand-total td { font-weight:bold; text-align:right; font-size:13px; }
+        .pr-purpose { font-size:12px; margin:10px 0; }
+        .pr-signblock { display:flex; justify-content:space-between; margin-top:20px; font-size:12px; }
+        .pr-signblock .col { width:48%; }
+        .pr-signblock .sig-line { border-bottom:1px solid #000; height:34px; margin-bottom:2px; }
+        .pr-signblock .sig-label { font-size:11px; color:#555; }
+        .pr-signblock .name { font-weight:bold; margin-top:10px; }
+        .pr-signblock .designation { font-size:11px; }
+        .pr-verify-block { display:flex; justify-content:space-between; margin-top:18px; font-size:12px; }
+        .pr-verify-block .col { width:48%; }
+        .pr-vts { text-align:right; font-size:11px; margin-top:30px; }
+        .print-copy { page-break-after:always; padding:25px; font-family:'Times New Roman',Times,serif; }
+        .print-copy:last-child { page-break-after:auto; }
+        .print-header { display:flex; align-items:center; gap:12px; border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:14px; }
+        .print-header .logo-box { width:72px; height:72px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+        .print-header .logo-box img { max-width:100%; max-height:100%; object-fit:contain; }
+        .print-header .header-text { flex:1; text-align:left; font-size:11.5px; line-height:1.45; padding-left:4px; }
+        .print-header .header-text .dept-name { font-weight:bold; font-size:14px; }
+        .print-header .seal-group { display:flex; gap:8px; flex-shrink:0; }
+        .print-header .seal-group .logo-box { width:58px; height:58px; }
+        .print-title { text-align:center; font-size:18px; font-weight:bold; margin-bottom:14px; }
+        .print-copy-label { text-align:right; font-size:11px; color:#555; margin-bottom:10px; }
+        .print-intro { font-size:12px; text-align:justify; margin-bottom:14px; line-height:1.5; }
+        .print-meta { font-size:12px; margin-bottom:4px; }
+        .print-meta strong { display:inline-block; width:160px; }
+        .print-table { width:100%; border-collapse:collapse; margin-top:12px; font-size:11px; }
+        .print-table th, .print-table td { border:1px solid #000; padding:5px; }
+        .print-table th { background:#eee; text-align:center; }
+        .print-table .section-header td { background:#f8f9fa; font-weight:bold; }
+        .print-table .section-header td { text-align:left; padding-left:10px; }
+        .print-footer { margin-top:30px; font-size:12px; }
+        .print-footer .sig-line { border-bottom:1px solid #000; height:26px; margin-bottom:2px; }
+        .print-footer .field-row { display:flex; margin-top:10px; }
+        .print-footer .field-row label { width:200px; font-weight:bold; }
+        .print-footer .field-row .fill-line { flex:1; border-bottom:1px solid #000; }
+        .print-enduser-name { text-align:center; margin:14px 0; }
+        .print-enduser-name .name { font-weight:bold; font-size:13px; }
+        .print-enduser-name .label { font-size:11px; margin-top:2px; }
+        .print-purpose-box { background:#f9f9f9; border-left:4px solid #1a3c6e; padding:10px 14px; margin:8px 0 14px 0; font-size:12px; line-height:1.6; white-space:pre-wrap; }
+    }
+
+    @media (max-width:768px) {
+        .form-group label { width:100%; margin-bottom:5px; }
+        .draft-row, .row-header.draft, .edit-row, .row-header.edit, .encode-row, .row-header.encode { grid-template-columns:1fr 1fr; }
+        .row-header { display:none; }
+        .container { padding:15px; }
+        .supplier-select-row { flex-wrap:wrap; }
+    }
+    .back-link { display:inline-block; margin-bottom:14px; font-size:13px; color:#1a3c6e; text-decoration:none; font-weight:600; }
+    .back-link:hover { text-decoration:underline; }
+</style>
+<body>
+<div class="container">
+    <a class="back-link" href="index.html">&larr; Back to Landing Page</a>
+    <h1>🔎 MARKET SURVEY SYSTEM</h1>
+
+    <div class="conn-bar">
+        <div class="dot" id="connDot"></div>
+        <span class="msg" id="connMsg">Not connected yet — click Test Connection.</span>
+        <button type="button" class="btn btn-small" onclick="window.testConnection()">🔌 Test Connection</button>
+    </div>
+
+    <div class="subtab-nav">
+        <button type="button" class="subtab-btn active" id="tabBtn-create" onclick="switchSubtab('create')">📝 Create Survey</button>
+        <button type="button" class="subtab-btn" id="tabBtn-edit" onclick="switchSubtab('edit')">✏️ Edit Survey</button>
+        <button type="button" class="subtab-btn" id="tabBtn-encode" onclick="switchSubtab('encode')">📥 Encode Quotes</button>
+        <button type="button" class="subtab-btn" id="tabBtn-suppliers" onclick="switchSubtab('suppliers')">🏢 Suppliers</button>
+    </div>
+
+    <!-- ============ STEP 1: CREATE ============ -->
+    <div id="view-create" class="subtab-view active">
+        <div class="form-section">
+            <h3>Market Survey Details</h3>
+            <div class="form-group"><label>MS No.:</label><input type="text" id="msNumber" readonly style="background:#e9ecef;"></div>
+            <div class="form-group"><label>Date Accomplished:</label><input type="date" id="msDate" required></div>
+            <div class="form-group"><label>End-User/Focal Person:</label><input type="text" id="msEndUser" placeholder="e.g., GSS - Motorpool" required></div>
+            <div class="form-group">
+                <label>Purpose / Job Order:</label>
+                <textarea id="msPurpose" placeholder="Enter the full job order description here. This will appear above the item table in the printout." rows="4" required></textarea>
+                <div class="help-text">Include job order details, labor description, and any other information that should appear above the item list.</div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Items</h3>
+            <div class="row-header draft">
+                <span>Stock No.</span><span>Qty</span><span>Unit</span><span>Item Description</span>
+                <span style="font-size:9px;">Section<br>Header</span>
+                <span>Unit Cost</span>
+                <span></span>
+            </div>
+            <div id="draftItems"></div>
+            <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+                <button type="button" class="btn btn-success btn-small" onclick="addDraftRow()">+ Add Item</button>
+                <button type="button" class="btn btn-secondary btn-small" onclick="addSectionHeader()">📋 Add Section Header</button>
+            </div>
+            <div style="margin-top:6px; font-size:11px; color:#6c757d;">
+                <strong>Tip:</strong> Check "Section Header" for rows that are just labels (e.g., "Labor:", "Parts, Oil & Lubricants:"). 
+                Section headers will appear in bold in the printout.
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button type="button" class="btn btn-accent" id="createBtn" onclick="submitCreate()">💾 Save Market Survey</button>
+            <button type="button" class="btn btn-print" id="printBtn" onclick="printLastSurvey()" disabled>🖨️ Print Form (3 copies)</button>
+            <button type="button" class="btn btn-danger" onclick="resetCreateForm()">🔄 Reset</button>
+        </div>
+
+        <div id="createStatus" class="status-message"></div>
+    </div>
+    <!-- ============ STEP 2: EDIT ============ -->
+    <div id="view-edit" class="subtab-view">
+        <div class="ms-lookup">
+            <h4>✏️ Load a Market Survey to Edit <span class="edit-badge">Add/Delete Items</span></h4>
+            <div class="ms-lookup-row">
+                <input type="text" id="editSearch" placeholder="e.g., MS-20260827-1234">
+                <button type="button" class="btn btn-accent btn-small" onclick="loadForEdit()">Load for Editing</button>
+                <button type="button" class="btn btn-secondary btn-small" onclick="toggleBrowseEdit()">📂 Browse Recent</button>
+            </div>
+            <div id="browseListEdit" class="browse-list"></div>
+        </div>
+
+        <div id="editSummary" class="summary-box"></div>
+
+        <div id="editBody" style="display:none;">
+            <div class="form-section">
+                <h3>Edit Items <span style="font-size:12px; font-weight:normal; color:#6c757d;">— Add, delete, or modify items below</span></h3>
+                <div class="row-header edit">
+                    <span>Stock No.</span><span>Qty</span><span>Unit</span><span>Item Description</span>
+                    <span style="font-size:9px;">Section<br>Header</span>
+                    <span>Unit Cost</span>
+                    <span></span>
+                </div>
+                <div id="editItems"></div>
+                <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+                    <button type="button" class="btn btn-success btn-small" onclick="addEditRow()">+ Add Item</button>
+                    <button type="button" class="btn btn-secondary btn-small" onclick="addEditSectionHeader()">📋 Add Section Header</button>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="btn btn-accent" id="editBtn" onclick="submitEdit()">💾 Save Changes</button>
+                <button type="button" class="btn btn-print" onclick="printEditedSurvey()">🖨️ Print Market Survey</button>
+                <button type="button" class="btn btn-danger" onclick="discardEdit()">🗑️ Discard Changes</button>
+            </div>
+        </div>
+
+        <div id="editStatus" class="status-message"></div>
+    </div>
+    <!-- ============ STEP 3: ENCODE QUOTES ============ -->
+    <div id="view-encode" class="subtab-view">
+        <div class="ms-lookup">
+            <h4>📥 Load a Market Survey to encode its 3 returned quotes</h4>
+            <div class="ms-lookup-row">
+                <input type="text" id="encodeSearch" placeholder="e.g., MS-20260827-1234">
+                <button type="button" class="btn btn-accent btn-small" onclick="loadForEncode()">Load</button>
+                <button type="button" class="btn btn-secondary btn-small" onclick="toggleBrowse()">📂 Browse Recent</button>
+            </div>
+            <div id="browseList" class="browse-list"></div>
+        </div>
+
+        <div id="encodeSummary" class="summary-box"></div>
+
+        <div id="encodeBody" style="display:none;">
+            <div class="form-section">
+                <h3>Items &amp; Canvassed Prices</h3>
+                <div class="row-header encode">
+                    <span>Stock No.</span><span>Qty</span><span>Unit</span><span>Description</span>
+                    <span>Supplier 1 ₱</span><span>Supplier 2 ₱</span><span>Supplier 3 ₱</span><span>Average ₱</span>
+                </div>
+                <div id="encodeItems"></div>
+            </div>
+
+            <div class="form-section supplier-block">
+                <h3>Supplier 1</h3>
+                <div class="supplier-select-row">
+                    <select id="s1Select" onchange="loadSupplier(1, this.value)">
+                        <option value="">-- Select from Database --</option>
+                    </select>
+                    <button type="button" class="btn btn-info btn-sm" onclick="saveSupplier(1)">💾 Save to DB</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="refreshSuppliers()">🔄 Refresh</button>
+                </div>
+                <div class="form-group"><label>Company Name:</label><input type="text" id="s1Name" required></div>
+                <div class="form-group"><label>Business Address:</label><input type="text" id="s1Address"></div>
+                <div class="form-group"><label>PhilGEPS Reg. No.:</label><input type="text" id="s1Philgeps"></div>
+                <div class="form-group"><label>TIN:</label><input type="text" id="s1Tin"></div>
+                <div class="form-group"><label>Telephone:</label><input type="text" id="s1Contact"></div>
+                <div class="form-group"><label>Email:</label><input type="email" id="s1Email"></div>
+                <div class="form-group"><label>Signatory Name:</label><input type="text" id="s1Signatory"></div>
+                <div class="form-group"><label>Designation:</label><input type="text" id="s1Designation"></div>
+            </div>
+
+            <div class="form-section supplier-block">
+                <h3>Supplier 2</h3>
+                <div class="supplier-select-row">
+                    <select id="s2Select" onchange="loadSupplier(2, this.value)">
+                        <option value="">-- Select from Database --</option>
+                    </select>
+                    <button type="button" class="btn btn-info btn-sm" onclick="saveSupplier(2)">💾 Save to DB</button>
+                </div>
+                <div class="form-group"><label>Company Name:</label><input type="text" id="s2Name" required></div>
+                <div class="form-group"><label>Business Address:</label><input type="text" id="s2Address"></div>
+                <div class="form-group"><label>PhilGEPS Reg. No.:</label><input type="text" id="s2Philgeps"></div>
+                <div class="form-group"><label>TIN:</label><input type="text" id="s2Tin"></div>
+                <div class="form-group"><label>Telephone:</label><input type="text" id="s2Contact"></div>
+                <div class="form-group"><label>Email:</label><input type="email" id="s2Email"></div>
+                <div class="form-group"><label>Signatory Name:</label><input type="text" id="s2Signatory"></div>
+                <div class="form-group"><label>Designation:</label><input type="text" id="s2Designation"></div>
+            </div>
+
+            <div class="form-section supplier-block">
+                <h3>Supplier 3</h3>
+                <div class="supplier-select-row">
+                    <select id="s3Select" onchange="loadSupplier(3, this.value)">
+                        <option value="">-- Select from Database --</option>
+                    </select>
+                    <button type="button" class="btn btn-info btn-sm" onclick="saveSupplier(3)">💾 Save to DB</button>
+                </div>
+                <div class="form-group"><label>Company Name:</label><input type="text" id="s3Name" required></div>
+                <div class="form-group"><label>Business Address:</label><input type="text" id="s3Address"></div>
+                <div class="form-group"><label>PhilGEPS Reg. No.:</label><input type="text" id="s3Philgeps"></div>
+                <div class="form-group"><label>TIN:</label><input type="text" id="s3Tin"></div>
+                <div class="form-group"><label>Telephone:</label><input type="text" id="s3Contact"></div>
+                <div class="form-group"><label>Email:</label><input type="email" id="s3Email"></div>
+                <div class="form-group"><label>Signatory Name:</label><input type="text" id="s3Signatory"></div>
+                <div class="form-group"><label>Designation:</label><input type="text" id="s3Designation"></div>
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="btn btn-accent" id="encodeBtn" onclick="submitEncode()">💾 Save Supplier Quotes</button>
+            </div>
+        </div>
+
+        <div id="encodeStatus" class="status-message"></div>
+    </div>
+    <!-- ============ STEP 4: SUPPLIERS MANAGEMENT ============ -->
+    <div id="view-suppliers" class="subtab-view">
+        <div class="form-section">
+            <h3>🏢 Supplier Database</h3>
+            <div style="margin-bottom:15px;">
+                <button type="button" class="btn btn-info btn-small" onclick="loadSuppliersList()">🔄 Refresh List</button>
+                <span style="font-size:12px; color:#6c757d; margin-left:10px;">Manage your supplier database here. Suppliers added from the Encode Quotes tab will appear here.</span>
+            </div>
+            <div id="suppliersList" style="max-height:500px; overflow-y:auto; border:1px solid #dee2e6; border-radius:4px;">
+                <div style="padding:20px; text-align:center; color:#6c757d;">Click "Refresh List" to load suppliers.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="printArea"></div>
+<script>
+// ============================================
+// CONFIG — shared backend for all pages
+// ============================================
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6kAJwGQFQDAJEEr12-akXxBTqwgTyVQb7yD13OjePUGN4AQeZTG1XbRFj7EDLr7ikyg/exec';
+
+// ============================================
+// GLOBAL VARIABLES
+// ============================================
+let supplierData = [];
+let currentSurvey = null;
+let lastSurvey = null;
+let editSurveyData = null;
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+function escapeHtml(str) {
+    if (str == null) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+}
+
+// ============================================
+// CONNECTION TEST
+// ============================================
+window.testConnection = async function() {
+    const dot = document.getElementById('connDot');
+    const msg = document.getElementById('connMsg');
+    dot.className = 'dot';
+    msg.textContent = 'Testing connection to server...';
+    console.log('Testing connection to:', SCRIPT_URL);
+    
+    try {
+        const res = await fetch(SCRIPT_URL, {
+            method: 'GET',
+            mode: 'cors',
+            headers: { 'Accept': 'application/json' }
+        });
+        
+        if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + res.statusText);
+        
+        const data = await res.json();
+        
+        if (data.success && data.status === 'Online') {
+            dot.className = 'dot ok';
+            msg.textContent = '✅ Connected — spreadsheet ' + data.spreadsheetId;
+            loadSuppliers();
+        } else {
+            dot.className = 'dot bad';
+            msg.textContent = '⚠️ Unexpected response: ' + JSON.stringify(data);
+        }
+    } catch (err) {
+        console.error('Connection error:', err);
+        dot.className = 'dot bad';
+        msg.textContent = '❌ ' + err.message + ' (Check console for details)';
+    }
+};
+
+window.addEventListener('DOMContentLoaded', function() {
+    setTimeout(window.testConnection, 500);
+});
+
+// ============================================
+// TAB SWITCHING
+// ============================================
+function switchSubtab(tab) {
+    document.getElementById('view-create').classList.toggle('active', tab === 'create');
+    document.getElementById('view-edit').classList.toggle('active', tab === 'edit');
+    document.getElementById('view-encode').classList.toggle('active', tab === 'encode');
+    document.getElementById('view-suppliers').classList.toggle('active', tab === 'suppliers');
+    document.getElementById('tabBtn-create').classList.toggle('active', tab === 'create');
+    document.getElementById('tabBtn-edit').classList.toggle('active', tab === 'edit');
+    document.getElementById('tabBtn-encode').classList.toggle('active', tab === 'encode');
+    document.getElementById('tabBtn-suppliers').classList.toggle('active', tab === 'suppliers');
+    
+    if (tab === 'suppliers') {
+        loadSuppliersList();
+    }
+}
+
+// ============================================
+// SUPPLIER DATABASE FUNCTIONS
+// ============================================
+async function loadSuppliers() {
+    try {
+        const res = await fetch(SCRIPT_URL + '?action=getSuppliers');
+        const data = await res.json();
+        if (data.success) {
+            supplierData = data.suppliers || [];
+            populateSupplierDropdowns();
+            console.log('Loaded ' + supplierData.length + ' suppliers');
+        } else {
+            console.error('Failed to load suppliers:', data.error);
+        }
+    } catch (err) {
+        console.error('Error loading suppliers:', err);
+    }
+}
+
+function populateSupplierDropdowns() {
+    const selects = ['s1Select', 's2Select', 's3Select'];
+    selects.forEach(id => {
+        const select = document.getElementById(id);
+        if (!select) return;
+        const currentValue = select.value;
+        // Clear all options
+        while (select.options.length > 0) {
+            select.remove(0);
+        }
+        // Add the default option
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = '-- Select from Database --';
+        select.appendChild(defaultOption);
+        
+        // Add supplier options
+        supplierData.forEach(s => {
+            const option = document.createElement('option');
+            option.value = s.id;
+            option.textContent = s.name + ' (' + s.id + ')';
+            option.dataset.supplier = JSON.stringify(s);
+            select.appendChild(option);
+        });
+        
+        // Add "New Supplier" option
+        const newOption = document.createElement('option');
+        newOption.value = '__new__';
+        newOption.textContent = '➕ Add New Supplier...';
+        select.appendChild(newOption);
+        
+        if (currentValue) select.value = currentValue;
+    });
+}
+
+async function loadSupplier(supplierNum, supplierId) {
+    if (!supplierId || supplierId === '') {
+        // Clear fields
+        clearSupplierFields(supplierNum);
+        return;
+    }
+    
+    if (supplierId === '__new__') {
+        // User wants to add a new supplier - clear fields for typing
+        clearSupplierFields(supplierNum);
+        document.getElementById('s' + supplierNum + 'Name').focus();
+        return;
+    }
+    
+    // Find supplier in data
+    const supplier = supplierData.find(s => s.id === supplierId);
+    if (supplier) {
+        document.getElementById('s' + supplierNum + 'Name').value = supplier.name || '';
+        document.getElementById('s' + supplierNum + 'Address').value = supplier.address || '';
+        document.getElementById('s' + supplierNum + 'Philgeps').value = supplier.philgeps || '';
+        document.getElementById('s' + supplierNum + 'Tin').value = supplier.tin || '';
+        document.getElementById('s' + supplierNum + 'Contact').value = supplier.contact || '';
+        document.getElementById('s' + supplierNum + 'Email').value = supplier.email || '';
+        document.getElementById('s' + supplierNum + 'Signatory').value = supplier.signatory || '';
+        document.getElementById('s' + supplierNum + 'Designation').value = supplier.designation || '';
+    }
+}
+
+function clearSupplierFields(num) {
+    document.getElementById('s' + num + 'Name').value = '';
+    document.getElementById('s' + num + 'Address').value = '';
+    document.getElementById('s' + num + 'Philgeps').value = '';
+    document.getElementById('s' + num + 'Tin').value = '';
+    document.getElementById('s' + num + 'Contact').value = '';
+    document.getElementById('s' + num + 'Email').value = '';
+    document.getElementById('s' + num + 'Signatory').value = '';
+    document.getElementById('s' + num + 'Designation').value = '';
+}
+
+function refreshSuppliers() {
+    loadSuppliers();
+    showEncodeStatus('🔄 Supplier list refreshed!', 'info');
+}
+
+async function saveSupplier(supplierNum) {
+    const name = document.getElementById('s' + supplierNum + 'Name').value.trim();
+    if (!name) {
+        showEncodeStatus('Please enter a company name to save.', 'error');
+        return;
+    }
+    
+    const payload = {
+        action: 'addSupplier',
+        name: name,
+        address: document.getElementById('s' + supplierNum + 'Address').value.trim(),
+        philgeps: document.getElementById('s' + supplierNum + 'Philgeps').value.trim(),
+        tin: document.getElementById('s' + supplierNum + 'Tin').value.trim(),
+        contact: document.getElementById('s' + supplierNum + 'Contact').value.trim(),
+        email: document.getElementById('s' + supplierNum + 'Email').value.trim(),
+        signatory: document.getElementById('s' + supplierNum + 'Signatory').value.trim(),
+        designation: document.getElementById('s' + supplierNum + 'Designation').value.trim()
+    };
+    
+    try {
+        const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        
+        if (result.success) {
+            showEncodeStatus('✅ Supplier "' + name + '" saved to database!', 'success');
+            // Refresh supplier list
+            await loadSuppliers();
+            // Select the newly added supplier
+            const select = document.getElementById('s' + supplierNum + 'Select');
+            // Find the supplier ID
+            const updatedSuppliers = supplierData.find(s => s.name === name);
+            if (updatedSuppliers) {
+                select.value = updatedSuppliers.id;
+                // Load the supplier data
+                loadSupplier(supplierNum, updatedSuppliers.id);
+            }
+        } else {
+            showEncodeStatus('❌ ' + (result.error || 'Failed to save supplier'), 'error');
+        }
+    } catch (err) {
+        showEncodeStatus('❌ ' + err.message, 'error');
+    }
+}
+
+async function loadSuppliersList() {
+    const container = document.getElementById('suppliersList');
+    container.innerHTML = '<div style="padding:20px; text-align:center; color:#6c757d;">Loading suppliers...</div>';
+    
+    try {
+        const res = await fetch(SCRIPT_URL + '?action=getSuppliers');
+        const data = await res.json();
+        
+        if (!data.success) {
+            container.innerHTML = '<div style="padding:20px; text-align:center; color:#dc3545;">❌ Failed to load suppliers: ' + (data.error || 'Unknown error') + '</div>';
+            return;
+        }
+        
+        const suppliers = data.suppliers || [];
+        if (suppliers.length === 0) {
+            container.innerHTML = '<div style="padding:20px; text-align:center; color:#6c757d;">No suppliers in database yet. Add suppliers from the Encode Quotes tab.</div>';
+            return;
+        }
+        
+        let html = '<table style="width:100%; border-collapse:collapse; font-size:13px;">';
+        html += '<thead><tr style="background:#e9ecef;">';
+        html += '<th style="padding:8px; text-align:left; border-bottom:2px solid #dee2e6;">#</th>';
+        html += '<th style="padding:8px; text-align:left; border-bottom:2px solid #dee2e6;">Company Name</th>';
+        html += '<th style="padding:8px; text-align:left; border-bottom:2px solid #dee2e6;">Address</th>';
+        html += '<th style="padding:8px; text-align:left; border-bottom:2px solid #dee2e6;">PhilGEPS</th>';
+        html += '<th style="padding:8px; text-align:left; border-bottom:2px solid #dee2e6;">TIN</th>';
+        html += '<th style="padding:8px; text-align:left; border-bottom:2px solid #dee2e6;">Contact</th>';
+        html += '<th style="padding:8px; text-align:left; border-bottom:2px solid #dee2e6;">Email</th>';
+        html += '<th style="padding:8px; text-align:left; border-bottom:2px solid #dee2e6;">Signatory</th>';
+        html += '<th style="padding:8px; text-align:left; border-bottom:2px solid #dee2e6;">Designation</th>';
+        html += '</tr></thead><tbody>';
+        
+        suppliers.forEach((s, idx) => {
+            html += '<tr style="border-bottom:1px solid #e9ecef;">';
+            html += '<td style="padding:6px;">' + (idx + 1) + '</td>';
+            html += '<td style="padding:6px; font-weight:600;">' + escapeHtml(s.name) + '</td>';
+            html += '<td style="padding:6px;">' + escapeHtml(s.address) + '</td>';
+            html += '<td style="padding:6px;">' + escapeHtml(s.philgeps) + '</td>';
+            html += '<td style="padding:6px;">' + escapeHtml(s.tin) + '</td>';
+            html += '<td style="padding:6px;">' + escapeHtml(s.contact) + '</td>';
+            html += '<td style="padding:6px;">' + escapeHtml(s.email) + '</td>';
+            html += '<td style="padding:6px;">' + escapeHtml(s.signatory) + '</td>';
+            html += '<td style="padding:6px;">' + escapeHtml(s.designation) + '</td>';
+            html += '</tr>';
+        });
+        
+        html += '</tbody></table>';
+        container.innerHTML = html;
+        
+    } catch (err) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; color:#dc3545;">❌ Error: ' + err.message + '</div>';
+    }
+}
+// ============================================
+// STEP 1: CREATE SURVEY
+// ============================================
+document.getElementById('msDate').value = new Date().toISOString().split('T')[0];
+
+function generateMSNumber() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const rnd = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    return `MS-${y}${m}${day}-${rnd}`;
+}
+document.getElementById('msNumber').value = generateMSNumber();
+
+function addDraftRow(stockNo = '', quantity = 1, unit = '', description = '', unitCost = 0, isHeader = false) {
+    const container = document.getElementById('draftItems');
+    const row = document.createElement('div');
+    row.className = 'draft-row';
+    if (isHeader) row.classList.add('is-header-row');
+    row.innerHTML = `
+        <input type="text" class="d-stock" value="${escapeHtml(stockNo)}" placeholder="Stock No.">
+        <input type="number" class="d-qty" value="${quantity}" min="0" step="0.01">
+        <input type="text" class="d-unit" value="${escapeHtml(unit)}" placeholder="Unit">
+        <input type="text" class="d-desc" value="${escapeHtml(description)}" placeholder="${isHeader ? 'Section header text...' : 'Item description'}" required>
+        <input type="checkbox" class="d-is-header" ${isHeader ? 'checked' : ''} onchange="toggleHeaderRow(this)">
+        <input type="number" class="d-cost" value="${unitCost}" min="0" step="0.01" placeholder="Cost">
+        <button type="button" class="btn btn-danger btn-small" onclick="this.closest('.draft-row').remove()">✕</button>
+    `;
+    container.appendChild(row);
+}
+
+function addSectionHeader() {
+    addDraftRow('', 0, '', 'Enter section header here...', 0, true);
+}
+
+function toggleHeaderRow(checkbox) {
+    const row = checkbox.closest('.draft-row');
+    row.classList.toggle('is-header-row', checkbox.checked);
+    const desc = row.querySelector('.d-desc');
+    desc.placeholder = checkbox.checked ? 'Section header text...' : 'Item description';
+}
+
+function resetCreateForm() {
+    if (!confirm('Reset this form? All entered data will be lost.')) return;
+    document.getElementById('msNumber').value = generateMSNumber();
+    document.getElementById('msDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('msEndUser').value = '';
+    document.getElementById('msPurpose').value = '';
+    document.getElementById('draftItems').innerHTML = '';
+    addDraftRow('1', 1, 'pcs.', 'Enter item description here...', 0, false);
+    document.getElementById('createStatus').style.display = 'none';
+    document.getElementById('printBtn').disabled = true;
+    lastSurvey = null;
+}
+
+function showCreateStatus(msg, type) {
+    const el = document.getElementById('createStatus');
+    el.textContent = msg;
+    el.className = 'status-message ' + type;
+}
+
+async function submitCreate() {
+    const msNumber = document.getElementById('msNumber').value;
+    const msDate = document.getElementById('msDate').value;
+    const msEndUser = document.getElementById('msEndUser').value.trim();
+    const msPurpose = document.getElementById('msPurpose').value.trim();
+
+    if (!msDate || !msEndUser || !msPurpose) {
+        showCreateStatus('Please fill in date, end-user, and purpose.', 'error');
+        return;
+    }
+
+    const items = [];
+    let hasValidItem = false;
+    document.querySelectorAll('#draftItems .draft-row').forEach(row => {
+        const desc = row.querySelector('.d-desc').value.trim();
+        const isHeader = row.querySelector('.d-is-header').checked;
+        const qty = parseFloat(row.querySelector('.d-qty').value) || 0;
+        const cost = parseFloat(row.querySelector('.d-cost').value) || 0;
+        
+        if (desc) {
+            items.push({
+                stockNo: row.querySelector('.d-stock').value.trim(),
+                quantity: qty,
+                unit: row.querySelector('.d-unit').value.trim(),
+                description: desc,
+                unitCost: cost,
+                isHeader: isHeader
+            });
+            if (!isHeader) hasValidItem = true;
+        }
+    });
+
+    if (items.length === 0) {
+        showCreateStatus('Add at least one item or section header.', 'error');
+        return;
+    }
+
+    if (!hasValidItem) {
+        showCreateStatus('Add at least one actual item (not just section headers).', 'error');
+        return;
+    }
+
+    const payload = {
+        action: 'createMarketSurvey',
+        msNumber, 
+        dateAccomplished: msDate, 
+        endUser: msEndUser, 
+        purpose: msPurpose,
+        items, 
+        timestamp: new Date().toISOString()
+    };
+
+    const btn = document.getElementById('createBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    showCreateStatus('Saving to Google Sheets...', 'info');
+
+    try {
+        const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+
+        if (result.success) {
+            showCreateStatus(`✅ Saved! ${result.itemsAdded} item(s) added to ${result.msNumber}. You can now print it.`, 'success');
+            lastSurvey = { 
+                msNumber, 
+                dateAccomplished: msDate, 
+                endUser: msEndUser, 
+                purpose: msPurpose,
+                items: items 
+            };
+            document.getElementById('printBtn').disabled = false;
+        } else {
+            showCreateStatus('❌ ' + (result.error || 'Unknown error'), 'error');
+        }
+    } catch (err) {
+        showCreateStatus('❌ ' + err.message, 'error');
+    }
+
+    btn.disabled = false;
+    btn.textContent = '💾 Save Market Survey';
+}
+// ============================================
+// PRINT
+// ============================================
+// ============================================
+// OFFICIAL LETTERHEAD (replace with your own logo/seal images)
+// Paste a base64 data URI ("data:image/png;base64,...") or a hosted
+// image URL for each. Leave blank ('') to show no image in that slot.
+// ============================================
+const DA_LOGO_URL = '';   // Department of Agriculture seal (left)
+const ISO_LOGO_URL = '';  // Certification International ISO 9001:2015 badge
+const PAB_LOGO_URL = '';  // PAB Accreditation badge
+
+function buildLetterheadHtml() {
+    const logoImg = DA_LOGO_URL ? `<img src="${DA_LOGO_URL}" alt="DA Logo">` : '';
+    const isoImg = ISO_LOGO_URL ? `<img src="${ISO_LOGO_URL}" alt="ISO 9001:2015">` : '';
+    const pabImg = PAB_LOGO_URL ? `<img src="${PAB_LOGO_URL}" alt="PAB Accredited">` : '';
+    return `
+        <div class="print-header">
+            <div class="logo-box">${logoImg}</div>
+            <div class="header-text">
+                <div>Republic of the Philippines</div>
+                <div class="dept-name">DEPARTMENT OF AGRICULTURE</div>
+                <div>Regional Field Office No. 1</div>
+                <div>Aguila Road, Sevilla, City of San Fernando, La Union</div>
+                <div>Telephone No. (072) 242 1045/1046</div>
+            </div>
+            <div class="seal-group">
+                <div class="logo-box">${isoImg}</div>
+                <div class="logo-box">${pabImg}</div>
+            </div>
+        </div>
+    `;
+}
+
+const MS_INTRO = "In determining the technical specifications of the goods it will procure, the PMO or end-user or implementing unit must consider the objectives of the project or the procurement at hand, and identify the standards that should be met by the goods in terms of function, performance, environmental interface and/or design. It must also conduct a market survey that will include a study of the available products or services, industry developments or standards, product or service standards specified by the authorized government entity like the Bureau of Product Standards, ISO9000 or similar local or international bodies. As a rule, Philippine standards, as specified by the Bureau of Product Standards, must be followed. For products where there are no specified Philippine standards, the standards of the country of origin or other international body may be considered. Product brochures, technical publications, industry newsletters, the industry itself, as well as the Internet, are good sources of product information. The conduct of a comparative study of the options available in the market and their relevance to the requirements of the Project is highly recommended. As such, please quote your best offer for the item/s listed below to determine the availability of the goods and cost or market price of the product to come up with a \"fair criteria\".";
+
+function buildPrintCopy(surveyData, copyNum, total) {
+    let rows = '';
+    
+    surveyData.items.forEach(it => {
+        const isHeader = it.isHeader || false;
+        const cellCount = 7;
+        
+        if (isHeader) {
+            rows += `<tr class="section-header">
+                <td colspan="${cellCount}" style="font-weight:bold; font-size:12px; padding:6px 10px; background:#f8f9fa;">
+                    ${escapeHtml(it.description)}
+                </td>
+            </tr>`;
+        } else {
+            const totalCost = (parseFloat(it.quantity) || 0) * (parseFloat(it.unitCost) || 0);
+            rows += `<tr>
+                <td style="text-align:center;">${escapeHtml(it.stockNo || '')}</td>
+                <td style="text-align:center;">${escapeHtml(it.quantity)}</td>
+                <td style="text-align:center;">${escapeHtml(it.unit)}</td>
+                <td>${escapeHtml(it.description)}</td>
+                <td></td>
+                <td style="text-align:right;">${totalCost > 0 ? parseFloat(it.unitCost).toFixed(2) : ''}</td>
+                <td style="text-align:right;">${totalCost > 0 ? totalCost.toFixed(2) : ''}</td>
+            </tr>`;
+        }
+    });
+
+    return `
+        <div class="print-copy">
+            <div class="print-copy-label">Supplier copy ${copyNum} of ${total}</div>
+            ${buildLetterheadHtml()}
+            <div class="print-title">MARKET SURVEY</div>
+            <div class="print-meta"><strong>MS No.:</strong> ${escapeHtml(surveyData.msNumber)}</div>
+            <div class="print-meta">Sir/Madam:</div>
+            <div class="print-intro">${escapeHtml(MS_INTRO)}</div>
+            
+            <div class="print-enduser-name">
+                <div class="name">${escapeHtml(surveyData.endUser).toUpperCase()}</div>
+                <div class="label">PRINTED NAME/SIGNATURE OF END USER/FOCAL PERSON</div>
+            </div>
+            
+            <div class="print-meta" style="margin-bottom:4px;"><strong>Purpose / Job Order:</strong></div>
+            <div class="print-purpose-box">${escapeHtml(surveyData.purpose).replace(/\n/g, '<br>')}</div>
+            
+            <table class="print-table">
+                <thead><tr>
+                    <th style="width:70px;">Stock/Property No.</th>
+                    <th style="width:50px;">Unit</th>
+                    <th style="width:40px;">Item Description</th>
+                    <th>Quantity</th>
+                    <th style="width:70px;">Offer</th>
+                    <th style="width:80px;">Unit Cost</th>
+                    <th style="width:90px;">Total Cost</th>
+                </tr></thead>
+                <tbody>
+                    ${rows}
+                    <tr><td colspan="4" style="border:none;"></td><td style="text-align:center; font-weight:bold;">12% VAT</td><td></td><td></td></tr>
+                </tbody>
+            </table>
+            
+            <div class="print-footer">
+                <div class="sig-line"></div>
+                <div style="text-align:center; font-size:11px; margin-bottom:14px;">PRINTED NAME/SIGNATURE OF AUTHORIZED REPRESENTATIVE</div>
+                <div class="field-row"><label>Designation:</label><div class="fill-line"></div></div>
+                <div class="field-row"><label>Company Name:</label><div class="fill-line"></div></div>
+                <div class="field-row"><label>Business Address:</label><div class="fill-line"></div></div>
+                <div class="field-row"><label>PhilGEPS Registration No.:</label><div class="fill-line"></div></div>
+                <div class="field-row"><label>Telephone Number:</label><div class="fill-line"></div></div>
+                <div class="field-row"><label>Email Address:</label><div class="fill-line"></div></div>
+                <div class="field-row"><label>TIN:</label><div class="fill-line"></div></div>
+                <div class="field-row"><label>Date Accomplished:</label><div class="fill-line"></div></div>
+            </div>
+        </div>
+    `;
+}
+
+function printLastSurvey() {
+    if (!lastSurvey) { alert('Save the Market Survey first.'); return; }
+    let html = '';
+    for (let i = 1; i <= 3; i++) html += buildPrintCopy(lastSurvey, i, 3);
+    document.getElementById('printArea').innerHTML = html;
+    window.print();
+}
+
+function printEditedSurvey() {
+    if (!editSurveyData) { alert('Load a Market Survey for editing first.'); return; }
+
+    // Build the print data from what's currently on screen, so unsaved
+    // edits (added/removed/changed rows) print correctly too.
+    const items = [];
+    document.querySelectorAll('#editItems .edit-row').forEach(row => {
+        const desc = row.querySelector('.e-desc').value.trim();
+        if (!desc) return;
+        items.push({
+            stockNo: row.querySelector('.e-stock').value.trim(),
+            quantity: parseFloat(row.querySelector('.e-qty').value) || 0,
+            unit: row.querySelector('.e-unit').value.trim(),
+            description: desc,
+            unitCost: parseFloat(row.querySelector('.e-cost').value) || 0,
+            isHeader: row.querySelector('.e-is-header').checked
+        });
+    });
+
+    if (items.length === 0) {
+        alert('Add at least one item before printing.');
+        return;
+    }
+
+    const printData = {
+        msNumber: editSurveyData.msNumber,
+        dateAccomplished: editSurveyData.dateAccomplished,
+        endUser: editSurveyData.endUser,
+        purpose: editSurveyData.purpose,
+        items: items
+    };
+
+    let html = '';
+    for (let i = 1; i <= 3; i++) html += buildPrintCopy(printData, i, 3);
+    document.getElementById('printArea').innerHTML = html;
+    window.print();
+}
+// ============================================
+// STEP 2: EDIT SURVEY
+// ============================================
+function showEditStatus(msg, type) {
+    const el = document.getElementById('editStatus');
+    el.textContent = msg;
+    el.className = 'status-message ' + type;
+}
+
+function addEditRow(stockNo = '', quantity = 1, unit = '', description = '', unitCost = 0, isHeader = false) {
+    const container = document.getElementById('editItems');
+    const row = document.createElement('div');
+    row.className = 'edit-row';
+    if (isHeader) row.classList.add('is-header-row');
+    row.innerHTML = `
+        <input type="text" class="e-stock" value="${escapeHtml(stockNo)}" placeholder="Stock No.">
+        <input type="number" class="e-qty" value="${quantity}" min="0" step="0.01">
+        <input type="text" class="e-unit" value="${escapeHtml(unit)}" placeholder="Unit">
+        <input type="text" class="e-desc" value="${escapeHtml(description)}" placeholder="${isHeader ? 'Section header text...' : 'Item description'}" required>
+        <input type="checkbox" class="e-is-header" ${isHeader ? 'checked' : ''} onchange="toggleEditHeaderRow(this)">
+        <input type="number" class="e-cost" value="${unitCost}" min="0" step="0.01" placeholder="Cost">
+        <button type="button" class="btn btn-danger btn-small" onclick="this.closest('.edit-row').remove()">✕</button>
+    `;
+    container.appendChild(row);
+}
+
+function addEditSectionHeader() {
+    addEditRow('', 0, '', 'Enter section header here...', 0, true);
+}
+
+function toggleEditHeaderRow(checkbox) {
+    const row = checkbox.closest('.edit-row');
+    row.classList.toggle('is-header-row', checkbox.checked);
+    const desc = row.querySelector('.e-desc');
+    desc.placeholder = checkbox.checked ? 'Section header text...' : 'Item description';
+}
+
+async function loadForEdit() {
+    const msNumber = document.getElementById('editSearch').value.trim();
+    if (!msNumber) { showEditStatus('Enter a Market Survey number.', 'error'); return; }
+    await fetchForEdit(msNumber);
+}
+
+async function fetchForEdit(msNumber) {
+    showEditStatus('Loading ' + msNumber + ' for editing...', 'info');
+    try {
+        const res = await fetch(SCRIPT_URL + '?action=getSurvey&msNumber=' + encodeURIComponent(msNumber));
+        const data = await res.json();
+
+        if (!data.success) {
+            showEditStatus('❌ ' + (data.error || 'Not found'), 'error');
+            document.getElementById('editBody').style.display = 'none';
+            document.getElementById('editSummary').classList.remove('visible');
+            return;
+        }
+
+        editSurveyData = data;
+
+        const summary = document.getElementById('editSummary');
+        summary.innerHTML = `
+            <strong>${escapeHtml(data.msNumber)}</strong> ${statusPill(data.status)}<br>
+            ${escapeHtml(data.dateAccomplished)} · ${escapeHtml(data.endUser)}<br>
+            <strong>Items:</strong> ${data.items.length} 
+            <span style="font-size:11px; color:#6c757d;">(${data.items.filter(i => !i.isHeader).length} actual items)</span>
+        `;
+        summary.classList.add('visible');
+
+        const container = document.getElementById('editItems');
+        container.innerHTML = '';
+        data.items.forEach((it) => {
+            const row = document.createElement('div');
+            row.className = 'edit-row existing-item';
+            if (it.isHeader) row.classList.add('is-header-row');
+            row.innerHTML = `
+                <input type="text" class="e-stock" value="${escapeHtml(it.stockNo || '')}" placeholder="Stock No.">
+                <input type="number" class="e-qty" value="${escapeHtml(it.quantity)}" min="0" step="0.01">
+                <input type="text" class="e-unit" value="${escapeHtml(it.unit)}" placeholder="Unit">
+                <input type="text" class="e-desc" value="${escapeHtml(it.description)}" placeholder="${it.isHeader ? 'Section header text...' : 'Item description'}" required>
+                <input type="checkbox" class="e-is-header" ${it.isHeader ? 'checked' : ''} onchange="toggleEditHeaderRow(this)">
+                <input type="number" class="e-cost" value="${escapeHtml(it.unitCost || 0)}" min="0" step="0.01" placeholder="Cost">
+                <button type="button" class="btn btn-danger btn-small" onclick="this.closest('.edit-row').remove()">✕</button>
+            `;
+            container.appendChild(row);
+        });
+
+        document.getElementById('editBody').style.display = 'block';
+        showEditStatus(`✅ Loaded ${data.items.length} item(s) for editing. Add, delete, or modify items below.`, 'success');
+        document.getElementById('browseListEdit').classList.remove('visible');
+
+    } catch (err) {
+        showEditStatus('❌ ' + err.message, 'error');
+    }
+}
+
+async function submitEdit() {
+    if (!editSurveyData) { alert('Load a survey first.'); return; }
+
+    const items = [];
+    let hasValidItem = false;
+
+    document.querySelectorAll('#editItems .edit-row').forEach(row => {
+        const desc = row.querySelector('.e-desc').value.trim();
+        const isHeader = row.querySelector('.e-is-header').checked;
+        const qty = parseFloat(row.querySelector('.e-qty').value) || 0;
+        const cost = parseFloat(row.querySelector('.e-cost').value) || 0;
+        
+        if (desc) {
+            const item = {
+                stockNo: row.querySelector('.e-stock').value.trim(),
+                quantity: qty,
+                unit: row.querySelector('.e-unit').value.trim(),
+                description: desc,
+                unitCost: cost,
+                isHeader: isHeader
+            };
+            items.push(item);
+            if (!isHeader) hasValidItem = true;
+        }
+    });
+
+    if (items.length === 0) {
+        showEditStatus('Add at least one item or section header.', 'error');
+        return;
+    }
+
+    if (!hasValidItem) {
+        showEditStatus('Add at least one actual item (not just section headers).', 'error');
+        return;
+    }
+
+    const payload = {
+        action: 'updateMarketSurveyItems',
+        msNumber: editSurveyData.msNumber,
+        items: items
+    };
+
+    const btn = document.getElementById('editBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving Changes...';
+    showEditStatus('Updating items in Google Sheets...', 'info');
+
+    try {
+        const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+
+        if (result.success) {
+            showEditStatus(`✅ Updated! ${result.itemsUpdated} items updated in ${result.msNumber}.`, 'success');
+            await fetchForEdit(editSurveyData.msNumber);
+        } else {
+            showEditStatus('❌ ' + (result.error || 'Unknown error'), 'error');
+        }
+    } catch (err) {
+        showEditStatus('❌ ' + err.message, 'error');
+    }
+
+    btn.disabled = false;
+    btn.textContent = '💾 Save Changes';
+}
+
+function discardEdit() {
+    if (!confirm('Discard all changes and reload the original data?')) return;
+    if (editSurveyData) {
+        fetchForEdit(editSurveyData.msNumber);
+    } else {
+        document.getElementById('editBody').style.display = 'none';
+        document.getElementById('editSummary').classList.remove('visible');
+        document.getElementById('editStatus').style.display = 'none';
+    }
+}
+
+async function toggleBrowseEdit() {
+    const list = document.getElementById('browseListEdit');
+    if (list.classList.contains('visible')) { list.classList.remove('visible'); return; }
+    list.innerHTML = '<div class="browse-item">Loading...</div>';
+    list.classList.add('visible');
+    try {
+        const res = await fetch(SCRIPT_URL + '?action=listSurveys');
+        const data = await res.json();
+        if (!data.success || !data.surveys || data.surveys.length === 0) {
+            list.innerHTML = '<div class="browse-item">No Market Surveys saved yet.</div>';
+            return;
+        }
+        list.innerHTML = '';
+        data.surveys.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'browse-item';
+            const statusLabel = s.status === 'Quoted' 
+                ? '<span class="status-pill quoted">Quoted</span>' 
+                : '<span class="status-pill pending">Pending Quotes</span>';
+            div.innerHTML = `<div><strong>${escapeHtml(s.msNumber)}</strong> ${statusLabel}</div>
+                <div style="color:#6c757d;font-size:12px;">${escapeHtml(s.dateAccomplished)} · ${escapeHtml(s.endUser)} — ${escapeHtml((s.purpose||'').substring(0,60))}</div>`;
+            div.onclick = () => { document.getElementById('editSearch').value = s.msNumber; fetchForEdit(s.msNumber); };
+            list.appendChild(div);
+        });
+    } catch (err) {
+        list.innerHTML = '<div class="browse-item">❌ ' + err.message + '</div>';
+    }
+}
+// ============================================
+// STEP 3: ENCODE QUOTES
+// ============================================
+function statusPill(status) {
+    return status === 'Quoted'
+        ? '<span class="status-pill quoted">Quoted</span>'
+        : '<span class="status-pill pending">Pending Quotes</span>';
+}
+
+function showEncodeStatus(msg, type) {
+    const el = document.getElementById('encodeStatus');
+    el.textContent = msg;
+    el.className = 'status-message ' + type;
+}
+
+async function loadForEncode() {
+    const msNumber = document.getElementById('encodeSearch').value.trim();
+    if (!msNumber) { showEncodeStatus('Enter a Market Survey number.', 'error'); return; }
+    await fetchForEncode(msNumber);
+}
+
+async function fetchForEncode(msNumber) {
+    showEncodeStatus('Loading ' + msNumber + '...', 'info');
+    try {
+        const res = await fetch(SCRIPT_URL + '?action=getSurvey&msNumber=' + encodeURIComponent(msNumber));
+        const data = await res.json();
+
+        if (!data.success) {
+            showEncodeStatus('❌ ' + (data.error || 'Not found'), 'error');
+            document.getElementById('encodeBody').style.display = 'none';
+            document.getElementById('encodeSummary').classList.remove('visible');
+            return;
+        }
+
+        currentSurvey = data;
+
+        const summary = document.getElementById('encodeSummary');
+        summary.innerHTML = `<strong>${escapeHtml(data.msNumber)}</strong> ${statusPill(data.status)}<br>${escapeHtml(data.dateAccomplished)} · ${escapeHtml(data.endUser)}<br>${escapeHtml(data.purpose)}`;
+        summary.classList.add('visible');
+
+        const itemsContainer = document.getElementById('encodeItems');
+        itemsContainer.innerHTML = '';
+        data.items.forEach(it => {
+            const row = document.createElement('div');
+            row.className = 'encode-row';
+            if (it.isHeader) {
+                row.innerHTML = `
+                    <input type="text" value="${escapeHtml(it.stockNo || '')}" readonly style="background:#e9ecef;" class="e-stock">
+                    <input type="text" value="${escapeHtml(it.quantity)}" readonly style="background:#e9ecef;">
+                    <input type="text" value="${escapeHtml(it.unit)}" readonly style="background:#e9ecef;">
+                    <input type="text" value="${escapeHtml(it.description)}" readonly style="background:#f8f9fa; font-weight:bold;" class="e-desc">
+                    <span style="font-size:10px; color:#6c757d; text-align:center;">(header)</span>
+                    <span style="font-size:10px; color:#6c757d; text-align:center;">—</span>
+                    <span style="font-size:10px; color:#6c757d; text-align:center;">—</span>
+                    <span style="font-size:10px; color:#6c757d; text-align:center;">—</span>
+                `;
+            } else {
+                row.innerHTML = `
+                    <input type="text" value="${escapeHtml(it.stockNo || '')}" readonly style="background:#e9ecef;" class="e-stock">
+                    <input type="text" value="${escapeHtml(it.quantity)}" readonly style="background:#e9ecef;" class="e-qty">
+                    <input type="text" value="${escapeHtml(it.unit)}" readonly style="background:#e9ecef;" class="e-unit">
+                    <input type="text" value="${escapeHtml(it.description)}" readonly style="background:#e9ecef;" class="e-desc">
+                    <input type="number" class="e-p1" value="${it.price1 || 0}" min="0" step="0.01" oninput="updateAvg(this.closest('.encode-row'))">
+                    <input type="number" class="e-p2" value="${it.price2 || 0}" min="0" step="0.01" oninput="updateAvg(this.closest('.encode-row'))">
+                    <input type="number" class="e-p3" value="${it.price3 || 0}" min="0" step="0.01" oninput="updateAvg(this.closest('.encode-row'))">
+                    <input type="text" class="avg" value="${(parseFloat(it.avgUnitPrice)||0).toFixed(2)}" readonly>
+                `;
+            }
+            itemsContainer.appendChild(row);
+        });
+
+        // Load supplier data into fields
+        const suppliers = data.suppliers || [{}, {}, {}];
+        ['1','2','3'].forEach((n, idx) => {
+            const s = suppliers[idx] || {};
+            document.getElementById('s'+n+'Name').value = s.name || '';
+            document.getElementById('s'+n+'Address').value = s.address || '';
+            document.getElementById('s'+n+'Philgeps').value = s.philgeps || '';
+            document.getElementById('s'+n+'Tin').value = s.tin || '';
+            document.getElementById('s'+n+'Contact').value = s.contact || '';
+            document.getElementById('s'+n+'Email').value = s.email || '';
+            document.getElementById('s'+n+'Signatory').value = s.signatory || '';
+            document.getElementById('s'+n+'Designation').value = s.designation || '';
+        });
+
+        document.getElementById('encodeBody').style.display = 'block';
+        showEncodeStatus(`✅ Loaded ${data.items.length} item(s). Enter the 3 supplier prices below.`, 'success');
+        document.getElementById('browseList').classList.remove('visible');
+        document.getElementById('encodeSearch').value = data.msNumber;
+
+    } catch (err) {
+        showEncodeStatus('❌ ' + err.message, 'error');
+    }
+}
+
+function updateAvg(row) {
+    const p1 = parseFloat(row.querySelector('.e-p1').value) || 0;
+    const p2 = parseFloat(row.querySelector('.e-p2').value) || 0;
+    const p3 = parseFloat(row.querySelector('.e-p3').value) || 0;
+    row.querySelector('.avg').value = ((p1+p2+p3)/3).toFixed(2);
+}
+
+async function toggleBrowse() {
+    const list = document.getElementById('browseList');
+    if (list.classList.contains('visible')) { list.classList.remove('visible'); return; }
+    list.innerHTML = '<div class="browse-item">Loading...</div>';
+    list.classList.add('visible');
+    try {
+        const res = await fetch(SCRIPT_URL + '?action=listSurveys');
+        const data = await res.json();
+        if (!data.success || !data.surveys || data.surveys.length === 0) {
+            list.innerHTML = '<div class="browse-item">No Market Surveys saved yet.</div>';
+            return;
+        }
+        list.innerHTML = '';
+        data.surveys.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'browse-item';
+            div.innerHTML = `<div><strong>${escapeHtml(s.msNumber)}</strong> ${statusPill(s.status)}</div><div style="color:#6c757d;font-size:12px;">${escapeHtml(s.dateAccomplished)} · ${escapeHtml(s.endUser)} — ${escapeHtml((s.purpose||'').substring(0,60))}</div>`;
+            div.onclick = () => { document.getElementById('encodeSearch').value = s.msNumber; fetchForEncode(s.msNumber); };
+            list.appendChild(div);
+        });
+    } catch (err) {
+        list.innerHTML = '<div class="browse-item">❌ ' + err.message + '</div>';
+    }
+}
+
+async function submitEncode() {
+    if (!currentSurvey) { alert('Load a Market Survey first.'); return; }
+
+    const required = ['s1Name','s2Name','s3Name'];
+    for (const id of required) {
+        if (!document.getElementById(id).value.trim()) {
+            showEncodeStatus('Please fill in all 3 supplier company names.', 'error');
+            document.getElementById(id).focus();
+            return;
+        }
+    }
+
+    const items = [];
+    document.querySelectorAll('#encodeItems .encode-row').forEach(row => {
+        const p1Input = row.querySelector('.e-p1');
+        if (p1Input) {
+            items.push({
+                itemNo: row.querySelector('.e-desc').value.trim() || 'Item',
+                price1: parseFloat(p1Input.value) || 0,
+                price2: parseFloat(row.querySelector('.e-p2').value) || 0,
+                price3: parseFloat(row.querySelector('.e-p3').value) || 0
+            });
+        }
+    });
+
+    if (items.length === 0) {
+        showEncodeStatus('No items to encode prices for.', 'error');
+        return;
+    }
+
+    const payload = {
+        action: 'encodeMarketSurveyQuotes',
+        msNumber: currentSurvey.msNumber,
+        items,
+        suppliers: ['1','2','3'].map(n => ({
+            name: document.getElementById('s'+n+'Name').value.trim(),
+            address: document.getElementById('s'+n+'Address').value.trim(),
+            philgeps: document.getElementById('s'+n+'Philgeps').value.trim(),
+            tin: document.getElementById('s'+n+'Tin').value.trim(),
+            contact: document.getElementById('s'+n+'Contact').value.trim(),
+            email: document.getElementById('s'+n+'Email').value.trim(),
+            signatory: document.getElementById('s'+n+'Signatory').value.trim(),
+            designation: document.getElementById('s'+n+'Designation').value.trim()
+        }))
+    };
+
+    const btn = document.getElementById('encodeBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    showEncodeStatus('Saving supplier quotes...', 'info');
+
+    try {
+        const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        console.log('encodeMarketSurveyQuotes response:', result);
+
+        if (result.success) {
+            showEncodeStatus(`✅ Saved! ${result.itemsUpdated} item price(s) updated. Survey is now "Quoted".`, 'success');
+        } else {
+            showEncodeStatus('❌ ' + (result.error || 'Unknown error'), 'error');
+        }
+    } catch (err) {
+        showEncodeStatus('❌ ' + err.message, 'error');
+    }
+
+    btn.disabled = false;
+    btn.textContent = '💾 Save Supplier Quotes';
+}
+
+// ============================================
+// INIT
+// ============================================
+addDraftRow('1', 1, 'pcs.', 'Enter item description here...', 0, false);
+</script>
+</body>
+</html>
